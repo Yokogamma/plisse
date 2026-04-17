@@ -122,6 +122,14 @@
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--teal); color: #fff; padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: 600; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100; }
   .toast.show { opacity: 1; }
   .hint { font-size: 11px; color: #334155; text-align: center; padding: 12px 0; line-height: 1.6; }
+
+  .color-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .color-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); font-weight: 600; min-width: 42px; }
+  .color-btns { display: flex; gap: 6px; flex: 1; }
+  .color-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 6px; font-size: 12px; font-weight: 600; font-family: var(--sans); color: var(--text-dim); background: rgba(255,255,255,0.04); border: 1px solid var(--border-light); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+  .color-btn.active { border-color: var(--teal); color: var(--text-bright); background: rgba(13,148,136,0.1); }
+  .color-btn:not(.active):hover { color: var(--text); }
+  .color-dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -145,8 +153,10 @@
     </div>
 
     <div class="type-tabs" id="type-tabs-win">
-      <button class="type-tab active" onclick="setType('w_gr')">ГР</button>
-      <button class="type-tab" onclick="setType('w_vr')">ВР</button>
+      <button class="type-tab" onclick="setType('w_vr')">ВР<br>Z</button>
+      <button class="type-tab active" onclick="setType('w_gr')">ГР<br>Z</button>
+      <button class="type-tab" onclick="setType('w_vr_vsn')">ВР<br>VSN</button>
+      <button class="type-tab" onclick="setType('w_gr_vsn')">ГР<br>VSN</button>
     </div>
     <div class="type-tabs" id="type-tabs-door" style="display:none">
       <button class="type-tab" onclick="setType('d_vr_rr')">ВР<br>Р/Р</button>
@@ -159,6 +169,15 @@
       <div class="input-group"><label>Ширина, мм</label><input id="inp-w" inputmode="numeric" value="1000" oninput="recalc()"></div>
       <div class="input-group"><label>Висота, мм</label><input id="inp-h" inputmode="numeric" value="1000" oninput="recalc()"></div>
       <div class="input-group"><label>Націнка, %</label><input id="inp-m" inputmode="numeric" value="40" oninput="recalc()"></div>
+    </div>
+
+    <div class="color-row">
+      <span class="color-label">Колір</span>
+      <div class="color-btns">
+        <button class="color-btn active" onclick="setColor('white')" title="RAL 9016 Білий"><span class="color-dot" style="background:#f0f0ec"></span>Білий</button>
+        <button class="color-btn" onclick="setColor('brown')" title="RAL 8017 Коричневий"><span class="color-dot" style="background:#44322d"></span>Коричневий</button>
+        <button class="color-btn" onclick="setColor('anthracite')" title="RAL 7016 Антрацит"><span class="color-dot" style="background:#383e42"></span>Антрацит</button>
+      </div>
     </div>
 
     <div class="toggle-btn" id="toggle-formulas" onclick="toggleFormulas()">
@@ -244,14 +263,19 @@ let prices = {};
 let showFormulas = false;
 let currentType = 'w_gr';
 let currentCat = 'win';
+let currentColor = 'white';
+
+const COLOR_NAMES = { white: "Білий", anthracite: "Антрацит 7016", brown: "Коричневий 8017" };
 
 const TYPE_LABELS = {
-  w_gr:     "Вікно — Горизонтальна ручка",
-  w_vr:     "Вікно — Вертикальна ручка",
-  d_vr_rr:  "Двері ВР — Рама / Рама",
-  d_vr_rp:  "Двері ВР — Рама / Поріг",
-  d_gr_rr:  "Двері ГР — Рама / Рама",
-  d_gr_rp:  "Двері ГР — Рама / Поріг",
+  w_gr:       "Вікно ГР — Z кріплення",
+  w_vr:       "Вікно ВР — Z кріплення",
+  w_gr_vsn:   "Вікно ГР — VSN кліпси",
+  w_vr_vsn:   "Вікно ВР — VSN кліпси",
+  d_vr_rr:    "Двері ВР — Рама / Рама",
+  d_vr_rp:    "Двері ВР — Рама / Поріг",
+  d_gr_rr:    "Двері ГР — Рама / Рама",
+  d_gr_rp:    "Двері ГР — Рама / Поріг",
 };
 
 // === IndexedDB ===
@@ -308,12 +332,12 @@ function setType(type) {
   // Update type tab buttons
   const winTabs = document.querySelectorAll("#type-tabs-win .type-tab");
   const doorTabs = document.querySelectorAll("#type-tabs-door .type-tab");
-  const winTypes = ["w_gr","w_vr"];
+  const winTypes = ["w_vr","w_gr","w_vr_vsn","w_gr_vsn"];
   const doorTypes = ["d_vr_rr","d_vr_rp","d_gr_rr","d_gr_rp"];
   winTabs.forEach((t,i) => t.className = "type-tab" + (type===winTypes[i] ? " active" : ""));
   doorTabs.forEach((t,i) => t.className = "type-tab" + (type===doorTypes[i] ? " active-d" : ""));
 
-  document.getElementById("type-label").textContent = TYPE_LABELS[type];
+  document.getElementById("type-label").textContent = TYPE_LABELS[type] + " · " + COLOR_NAMES[currentColor];
   recalc();
 }
 
@@ -321,6 +345,16 @@ function switchSub(sub) {
   document.getElementById("sub-mat").style.display = sub==="mat" ? "" : "none";
   document.getElementById("sub-cut").style.display = sub==="cut" ? "" : "none";
   document.querySelectorAll(".sub-tab").forEach((t,i) => t.classList.toggle("active", (i===0&&sub==="mat")||(i===1&&sub==="cut")));
+}
+
+function setColor(color) {
+  currentColor = color;
+  document.querySelectorAll(".color-btn").forEach(b => b.classList.toggle("active", b.getAttribute("onclick").includes(color)));
+  updateLabel();
+}
+
+function updateLabel() {
+  document.getElementById("type-label").textContent = TYPE_LABELS[currentType] + " · " + COLOR_NAMES[currentColor];
 }
 
 function toggleFormulas() {
@@ -333,12 +367,17 @@ function toggleFormulas() {
 // ========== WINDOW CALC ==========
 function calcWindow(W, H, mk) {
   const p = prices;
-  const isGR = currentType === "w_gr";
+  const isGR  = currentType === "w_gr" || currentType === "w_gr_vsn";
+  const isVSN = currentType.includes("vsn");
+  const mountLabel = isVSN ? "VSN кліпси" : "Z кріпл.";
 
-  // Cutlist
+  // Cutlist — VSN has different offsets (from КЛІПСИ sheets)
   let ramaHoriz, ramaVert, ruchkaLen;
-  if (isGR) { ramaHoriz = W-61; ramaVert = H-29; ruchkaLen = W-90+18; }
-  else      { ramaHoriz = W-29; ramaVert = H-61; ruchkaLen = H-90+18; }
+  if (isGR && !isVSN) { ramaHoriz = W-61; ramaVert = H-29; ruchkaLen = W-90+18; }
+  if (isGR &&  isVSN) { ramaHoriz = W-61; ramaVert = H-35; ruchkaLen = W-90+15; }
+  if (!isGR && !isVSN){ ramaHoriz = W-29; ramaVert = H-61; ruchkaLen = H-90+18; }
+  if (!isGR &&  isVSN){ ramaHoriz = W-29; ramaVert = H-65; ruchkaLen = H-90+15; }
+
   const meshLen = ruchkaLen + 38;
   const pvhLen = meshLen - 20;
   const brushLen = ruchkaLen + 30;
@@ -347,7 +386,7 @@ function calcWindow(W, H, mk) {
   let eyeletCount;
   if (isGR) eyeletCount = W<=1000 ? 8 : W<=1500 ? 10 : 12;
   else      eyeletCount = H<=2000 ? 16 : H<=2500 ? 20 : 24;
-  const clipZ = 6;
+  const clipZ = isVSN ? 0 : 6;
 
   const cuts = [
     { name: "Профіль рами горизонт.", size: ramaHoriz, qty: 2 },
@@ -358,9 +397,9 @@ function calcWindow(W, H, mk) {
     { name: "Щітковий ущільнювач", size: brushLen, qty: 1 },
     { name: "Нитка крайня", size: nitkaCr, qty: 2 },
     { name: "Нитка крайня внутр.", size: nitkaVn, qty: 1 },
-    { name: "Кліпса Z кріплення", size: null, qty: clipZ },
-    { name: "Люверс металевий", size: null, qty: eyeletCount },
   ];
+  if (!isVSN) cuts.push({ name: "Кліпса Z кріплення", size: null, qty: clipZ });
+  cuts.push({ name: "Люверс металевий", size: null, qty: eyeletCount });
 
   // Cost
   const ramaMP = (ramaHoriz*2 + ramaVert*2)/1000;
@@ -389,10 +428,14 @@ function calcWindow(W, H, mk) {
     { name: "Основа ПВХ", val: cPvh, raw: `${pvhMP.toFixed(3)} м.п. × ціна`, formula: `${pvhMP.toFixed(3)} × ${p.w_pvhOsnova} = ${cPvh.toFixed(2)}` },
     { name: "Нитка MEGAFIL", val: cNitka, raw: `${nitkaMP.toFixed(3)} м.п. × ціна`, formula: `${nitkaMP.toFixed(3)} × ${p.w_nitkaMegafil} = ${cNitka.toFixed(2)}` },
     { name: "Щітковий ущільнювач", val: cBrush, raw: `${brushMP.toFixed(3)} м.п. × ціна`, formula: `${brushMP.toFixed(3)} × ${p.w_brushSeal} = ${cBrush.toFixed(2)}` },
-    { name: `Кліпса Z (${clipZ} шт)`, val: cClipZ, raw: `${clipZ} × ціна`, formula: `${clipZ} × ${p.w_clipZ} = ${cClipZ.toFixed(2)}` },
+  ];
+  if (!isVSN) {
+    materials.push({ name: `Кліпса Z (${clipZ} шт)`, val: cClipZ, raw: `${clipZ} × ціна`, formula: `${clipZ} × ${p.w_clipZ} = ${cClipZ.toFixed(2)}` });
+  }
+  materials.push(
     { name: `Люверс (${eyeletCount} шт)`, val: cEyelet, raw: `${eyeletCount} × ціна`, formula: `${eyeletCount} × ${p.w_eyelet} = ${cEyelet.toFixed(2)}` },
     { name: "Робота по збірці", val: cWork },
-  ];
+  );
 
   const matTotal = materials.reduce((s,m) => s+m.val, 0);
   const admin = p.w_admin;
@@ -401,6 +444,16 @@ function calcWindow(W, H, mk) {
   const waste = wasteBase * (p.wasteMargin/100);
 
   return { cuts, materials, matTotal, admin, profit, waste };
+}
+
+// ========== SEGMENT TABLE (eyelets for doors) ==========
+// From ДВ(ВР) РАМА / ПОРОГ sheets — universal for all door types
+// dim = height for ВР, width for ГР
+function getSegmentData(dim) {
+  if (dim <= 1300) return { segments: 3, channels: 4, eyelets: 8,  range: "≤1300" };
+  if (dim <= 2100) return { segments: 5, channels: 6, eyelets: 12, range: "1301–2100" };
+  if (dim <= 2900) return { segments: 7, channels: 8, eyelets: 16, range: "2101–2900" };
+  return                   { segments: 9, channels: 10, eyelets: 20, range: ">2900" };
 }
 
 // ========== DOOR CALC ==========
@@ -437,9 +490,11 @@ function calcDoor(W, H, mk) {
   const nitkaCr = (W+H)*2+200;
   const nitkaVn = isVR ? (W+350)*2+H+250 : (H+350)*2+W+250;
 
-  let eyeletCount;
-  if (isVR) eyeletCount = H<=2000 ? 8 : H<=2500 ? 10 : 12;
-  else      eyeletCount = W<=1000 ? 4 : W<=1500 ? 6 : 10;
+  // Люверси — сегментна таблиця з листів розкрою
+  // dim = висота (ВР) або ширина (ГР) — напрямок руху сітки
+  const eyeletDim = isVR ? H : W;
+  const eyeletSeg = getSegmentData(eyeletDim);
+  const eyeletCount = eyeletSeg.eyelets;
 
   const cuts = [
     { name: "Профіль корпус горизонт.", size: korpusHoriz, qty: korpusHorizQty },
@@ -453,7 +508,7 @@ function calcDoor(W, H, mk) {
     { name: "Основа ПВХ", size: osnovaLen, qty: 2 },
     { name: "Нитка крайня", size: nitkaCr, qty: 2 },
     { name: "Нитка внутрішня", size: nitkaVn, qty: 1 },
-    { name: "Люверс", size: null, qty: eyeletCount },
+    { name: `Люверс (${eyeletSeg.range}, ${eyeletSeg.segments} сегм.)`, size: null, qty: eyeletCount },
   );
 
   // --- Cost (СБОРКА formulas) ---
@@ -470,16 +525,9 @@ function calcDoor(W, H, mk) {
   // Порог
   const cPorog = isPorog ? (W/1000) * p.d_porog : 0;
 
-  // Сітка 19мм — stepped height formula from Excel
-  const Hm = H/1000, Wm = W/1000;
-  let meshH;
-  if (Hm < 2)      meshH = 2;
-  else if (Hm < 2.2) meshH = 2.2;
-  else if (Hm < 2.4) meshH = 2.4;
-  else if (Wm < 2.7) meshH = 2.7;
-  else                meshH = 3;
-  const meshArea = meshH * Wm / 23 * 38;
-  const cMesh = meshArea * p.d_meshNet19;
+  // Сітка 19мм — уніфікована формула (як для вікон, враховує відходи)
+  const meshM2 = (W * H / 1e6) * 1.8;
+  const cMesh = meshM2 * p.d_meshNet19;
 
   // Комплект безпорогових (только для Р/П — дополнительно)
   const cAksBezporog = isPorog ? p.d_aksBezporog : 0;
@@ -516,7 +564,7 @@ function calcDoor(W, H, mk) {
   materials.push(
     { name: "Профіль крило 28мм", val: cKrylo, raw: `${isVR?"В":"Ш"}/1000 × ціна_крило`, formula: `${kryloMP.toFixed(3)} × ${p.d_profileKrylo} = ${cKrylo.toFixed(2)}` },
     { name: "Профіль корпус 28мм", val: cKorpus, raw: isPorog ? `(Ш+В×2)/1000 × ціна` : `(Ш+В)×2/1000 × ціна`, formula: `${korpusMP.toFixed(3)} × ${p.d_profileKorpus} = ${cKorpus.toFixed(2)}` },
-    { name: "Сітка плісована 19мм", val: cMesh, raw: `(${meshH}×Ш/23×38) × ціна`, formula: `${meshArea.toFixed(4)} м² × ${p.d_meshNet19} = ${cMesh.toFixed(2)}` },
+    { name: "Сітка плісована 19мм", val: cMesh, raw: `(Ш×В/10⁶)×1.8 × ціна`, formula: `${meshM2.toFixed(4)} м² × ${p.d_meshNet19} = ${cMesh.toFixed(2)}` },
   );
   if (isPorog) materials.push({ name: "Компл. безпорогових аксес.", val: cAksBezporog, raw: "1 × ціна", formula: `1 × ${p.d_aksBezporog} = ${cAksBezporog.toFixed(2)}` });
   materials.push(
@@ -526,7 +574,7 @@ function calcDoor(W, H, mk) {
     { name: "Синтетична мотузка", val: cRope, raw: `(Ш+В)/1000×8 × ціна`, formula: `${ropeMP.toFixed(3)} × ${p.d_rope} = ${cRope.toFixed(2)}` },
     { name: "Ущільнювач-щітка", val: cBrush, raw: `${isVR?"В":"Ш"}/1000 × ціна`, formula: `${brushMP.toFixed(3)} × ${p.d_brush} = ${cBrush.toFixed(2)}` },
     { name: `Саморези (8 шт)`, val: cScrews, raw: `8 × 0.39`, formula: `8 × ${p.d_screwPrice} = ${cScrews.toFixed(2)}` },
-    { name: `Люверс (${eyeletCount} шт)`, val: cEyelet, raw: `${eyeletCount} × ціна`, formula: `${eyeletCount} × ${p.d_eyelet.toFixed(4)} = ${cEyelet.toFixed(2)}` },
+    { name: `Люверс (${eyeletCount} шт)`, val: cEyelet, raw: `сегм.табл: ${isVR?"В":"Ш"}=${eyeletDim} → ${eyeletSeg.range} → ${eyeletSeg.segments} сегм., ${eyeletSeg.channels} кан.`, formula: `${eyeletSeg.channels} кан. × 2 = ${eyeletCount} шт × ${p.d_eyelet.toFixed(4)} = ${cEyelet.toFixed(2)}` },
     { name: "Робота по збірці", val: cWork },
   );
 
