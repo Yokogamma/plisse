@@ -1,683 +1,1302 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="uk">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Плісе — Калькулятор собівартості</title>
-<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #0c1219;
-    --card: rgba(255,255,255,0.02);
-    --border: rgba(255,255,255,0.06);
-    --border-light: rgba(255,255,255,0.12);
-    --text: #c8d6e5;
-    --text-dim: #64748b;
-    --text-bright: #e2e8f0;
-    --text-white: #f1f5f9;
-    --teal: #0d9488;
-    --teal-dark: #0f766e;
-    --orange: #d97706;
-    --orange-dark: #b45309;
-    --mono: 'JetBrains Mono', monospace;
-    --sans: 'Onest', 'Segoe UI', sans-serif;
-  }
-  body { background: var(--bg); font-family: var(--sans); color: var(--text); min-height: 100vh; padding: 24px 16px; -webkit-font-smoothing: antialiased; }
-  .container { max-width: 540px; margin: 0 auto; }
-  .header { text-align: center; margin-bottom: 24px; }
-  .header .badge { font-size: 11px; text-transform: uppercase; letter-spacing: 3px; color: var(--teal); font-weight: 700; margin-bottom: 6px; }
-  .header h1 { font-size: 22px; font-weight: 700; color: var(--text-white); line-height: 1.3; }
-  .header h1 .type-label { display: block; font-size: 13px; color: var(--text-dim); font-weight: 600; margin-top: 4px; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Плісе — Калькулятор собівартості</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Onest:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg: #0c1219;
+        --card: rgba(255, 255, 255, 0.02);
+        --border: rgba(255, 255, 255, 0.06);
+        --border-light: rgba(255, 255, 255, 0.12);
+        --text: #c8d6e5;
+        --text-dim: #64748b;
+        --text-bright: #e2e8f0;
+        --text-white: #f1f5f9;
+        --teal: #0d9488;
+        --teal-dark: #0f766e;
+        --orange: #d97706;
+        --orange-dark: #b45309;
+        --mono: "JetBrains Mono", monospace;
+        --sans: "Onest", "Segoe UI", sans-serif;
+      }
+      body {
+        background: var(--bg);
+        font-family: var(--sans);
+        color: var(--text);
+        min-height: 100vh;
+        padding: 24px 16px;
+        -webkit-font-smoothing: antialiased;
+      }
+      .container {
+        max-width: 540px;
+        margin: 0 auto;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 24px;
+      }
+      .header .badge {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        color: var(--teal);
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .header h1 {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-white);
+        line-height: 1.3;
+      }
+      .header h1 .type-label {
+        display: block;
+        font-size: 13px;
+        color: var(--text-dim);
+        font-weight: 600;
+        margin-top: 4px;
+      }
 
-  /* Main tabs */
-  .tabs { display: flex; gap: 4px; margin-bottom: 16px; background: rgba(255,255,255,0.04); border-radius: 10px; padding: 4px; }
-  .tab { flex: 1; padding: 10px 0; text-align: center; font-size: 13px; font-weight: 600; color: var(--text-dim); cursor: pointer; border-radius: 8px; border: none; background: none; transition: all 0.2s; font-family: var(--sans); }
-  .tab.active { background: var(--teal); color: #fff; }
-  .tab:not(.active):hover { color: var(--text); }
+      /* Main tabs */
+      .tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 16px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 10px;
+        padding: 4px;
+      }
+      .tab {
+        flex: 1;
+        padding: 10px 0;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-dim);
+        cursor: pointer;
+        border-radius: 8px;
+        border: none;
+        background: none;
+        transition: all 0.2s;
+        font-family: var(--sans);
+      }
+      .tab.active {
+        background: var(--teal);
+        color: #fff;
+      }
+      .tab:not(.active):hover {
+        color: var(--text);
+      }
 
-  /* Category tabs */
-  .cat-tabs { display: flex; gap: 4px; margin-bottom: 8px; background: rgba(255,255,255,0.04); border-radius: 10px; padding: 4px; }
-  .cat-tab { flex: 1; padding: 9px 0; text-align: center; font-size: 13px; font-weight: 700; color: var(--text-dim); cursor: pointer; border-radius: 8px; border: none; background: none; transition: all 0.2s; font-family: var(--sans); letter-spacing: 0.5px; }
-  .cat-tab.active-win { background: rgba(13,148,136,0.2); color: var(--teal); border: 1px solid rgba(13,148,136,0.35); }
-  .cat-tab.active-door { background: rgba(217,119,6,0.15); color: var(--orange); border: 1px solid rgba(217,119,6,0.35); }
-  .cat-tab:not([class*="active"]):hover { color: var(--text); }
+      /* Category tabs */
+      .cat-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 10px;
+        padding: 4px;
+      }
+      .cat-tab {
+        flex: 1;
+        padding: 9px 0;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-dim);
+        cursor: pointer;
+        border-radius: 8px;
+        border: none;
+        background: none;
+        transition: all 0.2s;
+        font-family: var(--sans);
+        letter-spacing: 0.5px;
+      }
+      .cat-tab.active-win {
+        background: rgba(13, 148, 136, 0.2);
+        color: var(--teal);
+        border: 1px solid rgba(13, 148, 136, 0.35);
+      }
+      .cat-tab.active-door {
+        background: rgba(217, 119, 6, 0.15);
+        color: var(--orange);
+        border: 1px solid rgba(217, 119, 6, 0.35);
+      }
+      .cat-tab:not([class*="active"]):hover {
+        color: var(--text);
+      }
 
-  /* Type tabs */
-  .type-tabs { display: flex; gap: 3px; margin-bottom: 16px; background: rgba(255,255,255,0.04); border-radius: 10px; padding: 4px; }
-  .type-tab { flex: 1; padding: 8px 2px; text-align: center; font-size: 11px; font-weight: 600; color: var(--text-dim); cursor: pointer; border-radius: 7px; border: none; background: none; transition: all 0.2s; font-family: var(--sans); line-height: 1.3; }
-  .type-tab.active { background: rgba(13,148,136,0.25); color: var(--teal); border: 1px solid rgba(13,148,136,0.4); }
-  .type-tab.active-d { background: rgba(217,119,6,0.15); color: var(--orange); border: 1px solid rgba(217,119,6,0.35); }
-  .type-tab:not(.active):not(.active-d):hover { color: var(--text); }
+      /* Type tabs */
+      .type-tabs {
+        display: flex;
+        gap: 3px;
+        margin-bottom: 16px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 10px;
+        padding: 4px;
+      }
+      .type-tab {
+        flex: 1;
+        padding: 8px 2px;
+        text-align: center;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-dim);
+        cursor: pointer;
+        border-radius: 7px;
+        border: none;
+        background: none;
+        transition: all 0.2s;
+        font-family: var(--sans);
+        line-height: 1.3;
+      }
+      .type-tab.active {
+        background: rgba(13, 148, 136, 0.25);
+        color: var(--teal);
+        border: 1px solid rgba(13, 148, 136, 0.4);
+      }
+      .type-tab.active-d {
+        background: rgba(217, 119, 6, 0.15);
+        color: var(--orange);
+        border: 1px solid rgba(217, 119, 6, 0.35);
+      }
+      .type-tab:not(.active):not(.active-d):hover {
+        color: var(--text);
+      }
 
-  .inputs-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-  .input-group label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); margin-bottom: 6px; display: block; }
-  .input-group input, .price-input {
-    background: rgba(255,255,255,0.06); border: 1px solid var(--border-light); border-radius: 8px;
-    padding: 10px 14px; color: var(--text-bright); font-size: 16px; font-family: var(--mono);
-    width: 100%; outline: none; transition: border-color 0.2s;
-  }
-  .input-group input:focus, .price-input:focus { border-color: var(--teal); }
+      .inputs-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .input-group label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--text-dim);
+        margin-bottom: 6px;
+        display: block;
+      }
+      .input-group input,
+      .price-input {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        padding: 10px 14px;
+        color: var(--text-bright);
+        font-size: 16px;
+        font-family: var(--mono);
+        width: 100%;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .input-group input:focus,
+      .price-input:focus {
+        border-color: var(--teal);
+      }
 
-  .toggle-btn {
-    width: 100%; padding: 12px 16px; font-size: 14px; font-weight: 600; color: #94a3b8; cursor: pointer;
-    background: rgba(255,255,255,0.05); border: 1px solid var(--border-light); border-radius: 10px;
-    margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px;
-    font-family: var(--sans); transition: all 0.2s;
-  }
-  .toggle-btn.active { background: rgba(13,148,136,0.15); border-color: var(--teal); color: var(--teal); }
+      .toggle-btn {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #94a3b8;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: var(--sans);
+        transition: all 0.2s;
+      }
+      .toggle-btn.active {
+        background: rgba(13, 148, 136, 0.15);
+        border-color: var(--teal);
+        color: var(--teal);
+      }
 
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 4px 16px 12px; margin-bottom: 12px; }
-  .card-title { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #475569; padding: 12px 0 4px; font-weight: 700; }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 4px 16px 12px;
+        margin-bottom: 12px;
+      }
+      .card-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #475569;
+        padding: 12px 0 4px;
+        font-weight: 700;
+      }
 
-  .sub-tabs { display: flex; gap: 2px; margin-bottom: 8px; padding-top: 8px; }
-  .sub-tab { flex: 1; padding: 7px 0; text-align: center; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; color: #475569; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; font-family: var(--sans); transition: all 0.2s; }
-  .sub-tab.active { color: var(--teal); border-bottom-color: var(--teal); }
-  .sub-tab:not(.active):hover { color: var(--text-dim); }
+      .sub-tabs {
+        display: flex;
+        gap: 2px;
+        margin-bottom: 8px;
+        padding-top: 8px;
+      }
+      .sub-tab {
+        flex: 1;
+        padding: 7px 0;
+        text-align: center;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-weight: 700;
+        color: #475569;
+        cursor: pointer;
+        border: none;
+        background: none;
+        border-bottom: 2px solid transparent;
+        font-family: var(--sans);
+        transition: all 0.2s;
+      }
+      .sub-tab.active {
+        color: var(--teal);
+        border-bottom-color: var(--teal);
+      }
+      .sub-tab:not(.active):hover {
+        color: var(--text-dim);
+      }
 
-  .row { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--border); }
-  .row-label { flex: 1; display: flex; flex-direction: column; gap: 3px; }
-  .row-name { font-size: 14px; }
-  .row-name.sub { font-size: 13px; color: #8a9bb0; }
-  .row-raw { font-size: 11px; color: var(--teal); font-family: var(--mono); opacity: 0.8; }
-  .row-formula { font-size: 11px; color: #5a6a7a; font-family: var(--mono); }
-  .row-value { font-family: var(--mono); font-weight: 600; color: var(--text-bright); white-space: nowrap; margin-left: 12px; font-size: 14px; }
-  .row-value.sub { font-weight: 400; color: #8a9bb0; }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 7px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .row-label {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .row-name {
+        font-size: 14px;
+      }
+      .row-name.sub {
+        font-size: 13px;
+        color: #8a9bb0;
+      }
+      .row-raw {
+        font-size: 11px;
+        color: var(--teal);
+        font-family: var(--mono);
+        opacity: 0.8;
+      }
+      .row-formula {
+        font-size: 11px;
+        color: #5a6a7a;
+        font-family: var(--mono);
+      }
+      .row-value {
+        font-family: var(--mono);
+        font-weight: 600;
+        color: var(--text-bright);
+        white-space: nowrap;
+        margin-left: 12px;
+        font-size: 14px;
+      }
+      .row-value.sub {
+        font-weight: 400;
+        color: #8a9bb0;
+      }
 
-  .total-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; margin-top: 8px; border-radius: 10px; }
-  .total-row.subtle { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
-  .total-row.accent { background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%); }
-  .total-row.accent-d { background: linear-gradient(135deg, var(--orange) 0%, var(--orange-dark) 100%); }
-  .total-row .label { font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-  .total-row.subtle .label { font-size: 14px; color: #94a3b8; }
-  .total-row.accent .label, .total-row.accent-d .label { font-size: 16px; color: #fff; }
-  .total-row .val { font-family: var(--mono); font-weight: 700; }
-  .total-row.subtle .val { font-size: 16px; color: var(--text-bright); }
-  .total-row.accent .val, .total-row.accent-d .val { font-size: 20px; color: #fff; }
+      .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        margin-top: 8px;
+        border-radius: 10px;
+      }
+      .total-row.subtle {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .total-row.accent {
+        background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
+      }
+      .total-row.accent-d {
+        background: linear-gradient(135deg, var(--orange) 0%, var(--orange-dark) 100%);
+      }
+      .total-row .label {
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .total-row.subtle .label {
+        font-size: 14px;
+        color: #94a3b8;
+      }
+      .total-row.accent .label,
+      .total-row.accent-d .label {
+        font-size: 16px;
+        color: #fff;
+      }
+      .total-row .val {
+        font-family: var(--mono);
+        font-weight: 700;
+      }
+      .total-row.subtle .val {
+        font-size: 16px;
+        color: var(--text-bright);
+      }
+      .total-row.accent .val,
+      .total-row.accent-d .val {
+        font-size: 20px;
+        color: #fff;
+      }
 
-  .summary-line { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; color: #94a3b8; }
-  .summary-line .val { font-family: var(--mono); font-weight: 600; }
-  .summary-line.dim { color: var(--text-dim); }
-  .summary-line.sep { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 8px; }
-  .summary-line.sep .val { color: var(--text-bright); font-weight: 700; }
+      .summary-line {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #94a3b8;
+      }
+      .summary-line .val {
+        font-family: var(--mono);
+        font-weight: 600;
+      }
+      .summary-line.dim {
+        color: var(--text-dim);
+      }
+      .summary-line.sep {
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 8px;
+      }
+      .summary-line.sep .val {
+        color: var(--text-bright);
+        font-weight: 700;
+      }
 
-  .cut-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-  .cut-row .cut-name { color: #8a9bb0; flex: 1; }
-  .cut-row .cut-size { font-family: var(--mono); color: var(--text-bright); font-weight: 600; }
-  .cut-row .cut-qty { font-family: var(--mono); color: var(--text-dim); margin-left: 12px; min-width: 40px; text-align: right; }
+      .cut-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+      }
+      .cut-row .cut-name {
+        color: #8a9bb0;
+        flex: 1;
+      }
+      .cut-row .cut-size {
+        font-family: var(--mono);
+        color: var(--text-bright);
+        font-weight: 600;
+      }
+      .cut-row .cut-qty {
+        font-family: var(--mono);
+        color: var(--text-dim);
+        margin-left: 12px;
+        min-width: 40px;
+        text-align: right;
+      }
 
-  .price-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
-  .price-row .price-name { flex: 1; font-size: 13px; color: var(--text); line-height: 1.3; }
-  .price-row .price-unit { font-size: 11px; color: var(--text-dim); white-space: nowrap; min-width: 40px; }
-  .price-input { width: 100px; font-size: 14px; padding: 8px 10px; text-align: right; }
-  .price-section { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--teal); padding: 14px 0 4px; font-weight: 700; }
-  .price-section.door { color: var(--orange); }
-  .price-actions { display: flex; gap: 8px; margin-top: 16px; margin-bottom: 8px; }
-  .btn { flex: 1; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 600; font-family: var(--sans); cursor: pointer; border: none; transition: all 0.2s; }
-  .btn-save { background: var(--teal); color: #fff; }
-  .btn-save:hover { background: var(--teal-dark); }
-  .btn-reset { background: rgba(255,255,255,0.06); color: #94a3b8; border: 1px solid var(--border-light); }
-  .btn-reset:hover { color: var(--text-bright); }
+      .price-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .price-row .price-name {
+        flex: 1;
+        font-size: 13px;
+        color: var(--text);
+        line-height: 1.3;
+      }
+      .price-row .price-unit {
+        font-size: 11px;
+        color: var(--text-dim);
+        white-space: nowrap;
+        min-width: 40px;
+      }
+      .price-input {
+        width: 100px;
+        font-size: 14px;
+        padding: 8px 10px;
+        text-align: right;
+      }
+      .price-section {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: var(--teal);
+        padding: 14px 0 4px;
+        font-weight: 700;
+      }
+      .price-section.door {
+        color: var(--orange);
+      }
+      .price-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+        margin-bottom: 8px;
+      }
+      .btn {
+        flex: 1;
+        padding: 12px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        font-family: var(--sans);
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+      }
+      .btn-save {
+        background: var(--teal);
+        color: #fff;
+      }
+      .btn-save:hover {
+        background: var(--teal-dark);
+      }
+      .btn-reset {
+        background: rgba(255, 255, 255, 0.06);
+        color: #94a3b8;
+        border: 1px solid var(--border-light);
+      }
+      .btn-reset:hover {
+        color: var(--text-bright);
+      }
 
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--teal); color: #fff; padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: 600; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100; }
-  .toast.show { opacity: 1; }
-  .hint { font-size: 11px; color: #334155; text-align: center; padding: 12px 0; line-height: 1.6; }
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--teal);
+        color: #fff;
+        padding: 10px 24px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        z-index: 100;
+      }
+      .toast.show {
+        opacity: 1;
+      }
+      .hint {
+        font-size: 11px;
+        color: #334155;
+        text-align: center;
+        padding: 12px 0;
+        line-height: 1.6;
+      }
 
-  .color-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-  .color-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); font-weight: 600; min-width: 42px; }
-  .color-btns { display: flex; gap: 6px; flex: 1; }
-  .color-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 6px; font-size: 12px; font-weight: 600; font-family: var(--sans); color: var(--text-dim); background: rgba(255,255,255,0.04); border: 1px solid var(--border-light); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-  .color-btn.active { border-color: var(--teal); color: var(--text-bright); background: rgba(13,148,136,0.1); }
-  .color-btn:not(.active):hover { color: var(--text); }
-  .color-dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0; }
-</style>
-</head>
-<body>
+      .color-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .color-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--text-dim);
+        font-weight: 600;
+        min-width: 42px;
+      }
+      .color-btns {
+        display: flex;
+        gap: 6px;
+        flex: 1;
+      }
+      .color-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 6px;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: var(--sans);
+        color: var(--text-dim);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .color-btn.active {
+        border-color: var(--teal);
+        color: var(--text-bright);
+        background: rgba(13, 148, 136, 0.1);
+      }
+      .color-btn:not(.active):hover {
+        color: var(--text);
+      }
+      .color-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        flex-shrink: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="badge">Внутрішній калькулятор</div>
+        <h1>
+          Плісе москітна сітка
+          <span class="type-label" id="type-label">Вікно — Горизонтальна ручка</span>
+        </h1>
+      </div>
 
-<div class="container">
-  <div class="header">
-    <div class="badge">Внутрішній калькулятор</div>
-    <h1>Плісе москітна сітка<span class="type-label" id="type-label">Вікно — Горизонтальна ручка</span></h1>
-  </div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('calc')">Калькулятор</button>
+        <button class="tab" onclick="switchTab('prices')">Прайс</button>
+      </div>
 
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('calc')">Калькулятор</button>
-    <button class="tab" onclick="switchTab('prices')">Прайс</button>
-  </div>
+      <!-- CALC -->
+      <div id="tab-calc">
+        <div class="cat-tabs">
+          <button class="cat-tab active-win" id="cat-win" onclick="setCat('win')">Вікна</button>
+          <button class="cat-tab" id="cat-door" onclick="setCat('door')">Двері</button>
+        </div>
 
-  <!-- CALC -->
-  <div id="tab-calc">
-    <div class="cat-tabs">
-      <button class="cat-tab active-win" id="cat-win" onclick="setCat('win')">Вікна</button>
-      <button class="cat-tab" id="cat-door" onclick="setCat('door')">Двері</button>
-    </div>
+        <div class="type-tabs" id="type-tabs-win">
+          <button class="type-tab active" onclick="setType('w_vr')">
+            ВР
+            <br />
+            Z
+          </button>
+          <button class="type-tab" onclick="setType('w_gr')">
+            ГР
+            <br />
+            Z
+          </button>
+          <button class="type-tab" onclick="setType('w_vr_vsn')">
+            ВР
+            <br />
+            VSN
+          </button>
+          <button class="type-tab" onclick="setType('w_gr_vsn')">
+            ГР
+            <br />
+            VSN
+          </button>
+        </div>
+        <div class="type-tabs" id="type-tabs-door" style="display: none">
+          <button class="type-tab" onclick="setType('d_vr_rr')">
+            ВР
+            <br />
+            Р/Р
+          </button>
+          <button class="type-tab" onclick="setType('d_vr_rp')">
+            ВР
+            <br />
+            Р/П
+          </button>
+          <button class="type-tab" onclick="setType('d_gr_rr')">
+            ГР
+            <br />
+            Р/Р
+          </button>
+          <button class="type-tab" onclick="setType('d_gr_rp')">
+            ГР
+            <br />
+            Р/П
+          </button>
+        </div>
 
-    <div class="type-tabs" id="type-tabs-win">
-      <button class="type-tab" onclick="setType('w_vr')">ВР<br>Z</button>
-      <button class="type-tab active" onclick="setType('w_gr')">ГР<br>Z</button>
-      <button class="type-tab" onclick="setType('w_vr_vsn')">ВР<br>VSN</button>
-      <button class="type-tab" onclick="setType('w_gr_vsn')">ГР<br>VSN</button>
-    </div>
-    <div class="type-tabs" id="type-tabs-door" style="display:none">
-      <button class="type-tab" onclick="setType('d_vr_rr')">ВР<br>Р/Р</button>
-      <button class="type-tab" onclick="setType('d_vr_rp')">ВР<br>Р/П</button>
-      <button class="type-tab" onclick="setType('d_gr_rr')">ГР<br>Р/Р</button>
-      <button class="type-tab" onclick="setType('d_gr_rp')">ГР<br>Р/П</button>
-    </div>
+        <div class="inputs-grid">
+          <div class="input-group">
+            <label>Ширина, мм</label>
+            <input id="inp-w" inputmode="numeric" value="1000" oninput="recalc()" />
+          </div>
+          <div class="input-group">
+            <label>Висота, мм</label>
+            <input id="inp-h" inputmode="numeric" value="1000" oninput="recalc()" />
+          </div>
+          <div class="input-group">
+            <label>Націнка, %</label>
+            <input id="inp-m" inputmode="numeric" value="40" oninput="recalc()" />
+          </div>
+        </div>
 
-    <div class="inputs-grid">
-      <div class="input-group"><label>Ширина, мм</label><input id="inp-w" inputmode="numeric" value="1000" oninput="recalc()"></div>
-      <div class="input-group"><label>Висота, мм</label><input id="inp-h" inputmode="numeric" value="1000" oninput="recalc()"></div>
-      <div class="input-group"><label>Націнка, %</label><input id="inp-m" inputmode="numeric" value="40" oninput="recalc()"></div>
-    </div>
+        <div class="color-row">
+          <span class="color-label">Колір</span>
+          <div class="color-btns">
+            <button class="color-btn active" onclick="setColor('white')" title="RAL 9016 Білий">
+              <span class="color-dot" style="background: #f0f0ec"></span>
+              Білий
+            </button>
+            <button class="color-btn" onclick="setColor('brown')" title="RAL 8017 Коричневий">
+              <span class="color-dot" style="background: #44322d"></span>
+              Коричневий
+            </button>
+            <button class="color-btn" onclick="setColor('anthracite')" title="RAL 7016 Антрацит">
+              <span class="color-dot" style="background: #383e42"></span>
+              Антрацит
+            </button>
+          </div>
+        </div>
 
-    <div class="color-row">
-      <span class="color-label">Колір</span>
-      <div class="color-btns">
-        <button class="color-btn active" onclick="setColor('white')" title="RAL 9016 Білий"><span class="color-dot" style="background:#f0f0ec"></span>Білий</button>
-        <button class="color-btn" onclick="setColor('brown')" title="RAL 8017 Коричневий"><span class="color-dot" style="background:#44322d"></span>Коричневий</button>
-        <button class="color-btn" onclick="setColor('anthracite')" title="RAL 7016 Антрацит"><span class="color-dot" style="background:#383e42"></span>Антрацит</button>
+        <div class="toggle-btn" id="toggle-formulas" onclick="toggleFormulas()">
+          <span id="toggle-text">▸ Показати формули</span>
+        </div>
+
+        <div class="card">
+          <div class="sub-tabs">
+            <button class="sub-tab active" onclick="switchSub('mat')">Матеріали</button>
+            <button class="sub-tab" onclick="switchSub('cut')">Розкрій</button>
+          </div>
+          <div id="sub-mat">
+            <div id="materials-list"></div>
+            <div id="materials-total"></div>
+          </div>
+          <div id="sub-cut" style="display: none">
+            <div id="cutlist"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Накладні витрати</div>
+          <div id="overheads-list"></div>
+          <div id="overheads-total"></div>
+        </div>
+
+        <div class="card" style="padding: 16px">
+          <div id="summary"></div>
+        </div>
+      </div>
+
+      <!-- PRICES -->
+      <div id="tab-prices" style="display: none">
+        <div class="card" style="padding: 12px 16px">
+          <div id="prices-list"></div>
+          <div class="price-actions">
+            <button class="btn btn-reset" onclick="resetPrices()">Скинути</button>
+            <button class="btn btn-save" onclick="savePrices()">Зберегти</button>
+          </div>
+        </div>
+        <div class="hint">Ціни зберігаються в IndexedDB браузера</div>
       </div>
     </div>
 
-    <div class="toggle-btn" id="toggle-formulas" onclick="toggleFormulas()">
-      <span id="toggle-text">▸ Показати формули</span>
-    </div>
+    <div class="toast" id="toast"></div>
 
-    <div class="card">
-      <div class="sub-tabs">
-        <button class="sub-tab active" onclick="switchSub('mat')">Матеріали</button>
-        <button class="sub-tab" onclick="switchSub('cut')">Розкрій</button>
-      </div>
-      <div id="sub-mat">
-        <div id="materials-list"></div>
-        <div id="materials-total"></div>
-      </div>
-      <div id="sub-cut" style="display:none">
-        <div id="cutlist"></div>
-      </div>
-    </div>
+    <script>
+      // ========== PRICES ==========
+      const DEFAULTS = {
+        // --- ВІКНА 18мм ---
+        w_profileRama: { val: 115.56, name: "Профіль рами 18мм (арт.127)", unit: "грн/м.п.", section: "win" },
+        w_profileRuchka: { val: 113.4, name: "Профіль ручки 18мм (арт.126)", unit: "грн/м.п.", section: "win" },
+        w_meshNet14: { val: 75.6, name: "Сітка плісована 14мм (арт.611)", unit: "грн/м²", section: "win" },
+        w_aksKit: { val: 62.64, name: "Комплект аксесуарів 18мм (арт.5210)", unit: "грн/комп", section: "win" },
+        w_pvhOsnova: { val: 18.36, name: "Основа ПВХ 14мм (арт.5211)", unit: "грн/м.п.", section: "win" },
+        w_nitkaMegafil: { val: 2.86, name: "Нитка MEGAFIL (арт.5803)", unit: "грн/м.п.", section: "win" },
+        w_brushSeal: { val: 9.07, name: "Щітковий ущільнювач (арт.5810)", unit: "грн/м.п.", section: "win" },
+        w_clipZ: { val: 6.35, name: "Кліпса Z кріплення (арт.861)", unit: "грн/шт", section: "win" },
+        w_eyelet: { val: 0.54, name: "Люверс металевий (арт.5705)", unit: "грн/шт", section: "win" },
+        w_workshop: { val: 250, name: "Робота по збірці (вікно)", unit: "грн/шт", section: "win" },
+        w_admin: { val: 120, name: "Адмін витрати (вікно)", unit: "грн", section: "win" },
+        // --- ДВЕРІ 28мм ---
+        d_profileKrylo: { val: 121.4, name: "Профіль крило 28мм", unit: "грн/м.п.", section: "door" },
+        d_profileKorpus: { val: 104.4, name: "Профіль корпус 28мм", unit: "грн/м.п.", section: "door" },
+        d_meshNet19: { val: 66.65, name: "Сітка плісована 19мм", unit: "грн/м²", section: "door" },
+        d_aksKit: { val: 81.144, name: "Комплект аксесуарів 28мм", unit: "грн/комп", section: "door" },
+        d_aksBezporog: { val: 71.875, name: "Комплект безпорогових аксес. 28мм", unit: "грн/комп", section: "door" },
+        d_pvhFlat19: { val: 16.0, name: "Профіль плоский ПВХ 19мм", unit: "грн/м.п.", section: "door" },
+        d_pvhCaps: { val: 25.093, name: "ПВХ кришки 28мм", unit: "грн/комп", section: "door" },
+        d_rope: { val: 2.9, name: "Синтетична мотузка", unit: "грн/м.п.", section: "door" },
+        d_brush: { val: 8.5, name: "Ущільнювач-щітка", unit: "грн/м.п.", section: "door" },
+        d_screwPrice: { val: 0.39, name: "Саморез", unit: "грн/шт", section: "door" },
+        d_eyelet: { val: 0.2542, name: "Люверс металевий", unit: "грн/шт", section: "door" },
+        d_porog: { val: 94.47, name: "Профіль порог анодований 28мм", unit: "грн/м.п.", section: "door" },
+        d_workshop: { val: 300, name: "Робота по збірці (двері)", unit: "грн/шт", section: "door" },
+        d_admin: { val: 120, name: "Адмін витрати (двері)", unit: "грн", section: "door" },
+        // --- shared ---
+        profitMargin: { val: 3, name: "Гешефт виробництва", unit: "%", section: "shared" },
+        wasteMargin: { val: 3, name: "Відходність матеріалу", unit: "%", section: "shared" },
+      };
 
-    <div class="card">
-      <div class="card-title">Накладні витрати</div>
-      <div id="overheads-list"></div>
-      <div id="overheads-total"></div>
-    </div>
+      let prices = {};
+      let showFormulas = false;
+      let currentType = "w_gr";
+      let currentCat = "win";
+      let currentColor = "white";
 
-    <div class="card" style="padding: 16px">
-      <div id="summary"></div>
-    </div>
-  </div>
+      const COLOR_NAMES = { white: "Білий", anthracite: "Антрацит 7016", brown: "Коричневий 8017" };
 
-  <!-- PRICES -->
-  <div id="tab-prices" style="display:none">
-    <div class="card" style="padding: 12px 16px">
-      <div id="prices-list"></div>
-      <div class="price-actions">
-        <button class="btn btn-reset" onclick="resetPrices()">Скинути</button>
-        <button class="btn btn-save" onclick="savePrices()">Зберегти</button>
-      </div>
-    </div>
-    <div class="hint">Ціни зберігаються в IndexedDB браузера</div>
-  </div>
-</div>
+      const TYPE_LABELS = {
+        w_gr: "Вікно ГР — Z кріплення",
+        w_vr: "Вікно ВР — Z кріплення",
+        w_gr_vsn: "Вікно ГР — VSN кліпси",
+        w_vr_vsn: "Вікно ВР — VSN кліпси",
+        d_vr_rr: "Двері ВР — Рама / Рама",
+        d_vr_rp: "Двері ВР — Рама / Поріг",
+        d_gr_rr: "Двері ГР — Рама / Рама",
+        d_gr_rp: "Двері ГР — Рама / Поріг",
+      };
 
-<div class="toast" id="toast"></div>
+      // === IndexedDB ===
+      function openDB() {
+        return new Promise((resolve, reject) => {
+          const req = indexedDB.open("plisse-all-v2", 1);
+          req.onupgradeneeded = () => req.result.createObjectStore("config");
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      }
+      async function dbGet(key) {
+        const db = await openDB();
+        return new Promise((r) => {
+          const rq = db.transaction("config", "readonly").objectStore("config").get(key);
+          rq.onsuccess = () => r(rq.result);
+          rq.onerror = () => r(null);
+        });
+      }
+      async function dbSet(key, val) {
+        const db = await openDB();
+        return new Promise((r) => {
+          const tx = db.transaction("config", "readwrite");
+          tx.objectStore("config").put(val, key);
+          tx.oncomplete = () => r();
+        });
+      }
 
-<script>
-// ========== PRICES ==========
-const DEFAULTS = {
-  // --- ВІКНА 18мм ---
-  w_profileRama:    { val: 115.56, name: "Профіль рами 18мм (арт.127)",         unit: "грн/м.п.", section: "win" },
-  w_profileRuchka:  { val: 113.40, name: "Профіль ручки 18мм (арт.126)",        unit: "грн/м.п.", section: "win" },
-  w_meshNet14:      { val: 75.60,  name: "Сітка плісована 14мм (арт.611)",      unit: "грн/м²",  section: "win" },
-  w_aksKit:         { val: 62.64,  name: "Комплект аксесуарів 18мм (арт.5210)", unit: "грн/комп", section: "win" },
-  w_pvhOsnova:      { val: 18.36,  name: "Основа ПВХ 14мм (арт.5211)",          unit: "грн/м.п.", section: "win" },
-  w_nitkaMegafil:   { val: 2.86,   name: "Нитка MEGAFIL (арт.5803)",            unit: "грн/м.п.", section: "win" },
-  w_brushSeal:      { val: 9.07,   name: "Щітковий ущільнювач (арт.5810)",      unit: "грн/м.п.", section: "win" },
-  w_clipZ:          { val: 6.35,   name: "Кліпса Z кріплення (арт.861)",        unit: "грн/шт",  section: "win" },
-  w_eyelet:         { val: 0.54,   name: "Люверс металевий (арт.5705)",          unit: "грн/шт",  section: "win" },
-  w_workshop:       { val: 250,    name: "Робота по збірці (вікно)",              unit: "грн/шт",  section: "win" },
-  w_admin:          { val: 120,    name: "Адмін витрати (вікно)",                 unit: "грн",     section: "win" },
-  // --- ДВЕРІ 28мм ---
-  d_profileKrylo:   { val: 121.40, name: "Профіль крило 28мм",                   unit: "грн/м.п.", section: "door" },
-  d_profileKorpus:  { val: 104.40, name: "Профіль корпус 28мм",                  unit: "грн/м.п.", section: "door" },
-  d_meshNet19:      { val: 66.65,  name: "Сітка плісована 19мм",                 unit: "грн/м²",  section: "door" },
-  d_aksKit:         { val: 81.144, name: "Комплект аксесуарів 28мм",             unit: "грн/комп", section: "door" },
-  d_aksBezporog:    { val: 71.875, name: "Комплект безпорогових аксес. 28мм",    unit: "грн/комп", section: "door" },
-  d_pvhFlat19:      { val: 16.00,  name: "Профіль плоский ПВХ 19мм",             unit: "грн/м.п.", section: "door" },
-  d_pvhCaps:        { val: 25.093, name: "ПВХ кришки 28мм",                      unit: "грн/комп", section: "door" },
-  d_rope:           { val: 2.90,   name: "Синтетична мотузка",                    unit: "грн/м.п.", section: "door" },
-  d_brush:          { val: 8.50,   name: "Ущільнювач-щітка",                     unit: "грн/м.п.", section: "door" },
-  d_screwPrice:     { val: 0.39,   name: "Саморез",                               unit: "грн/шт",  section: "door" },
-  d_eyelet:         { val: 0.2542, name: "Люверс металевий",                      unit: "грн/шт",  section: "door" },
-  d_porog:          { val: 94.47,  name: "Профіль порог анодований 28мм",         unit: "грн/м.п.", section: "door" },
-  d_workshop:       { val: 300,    name: "Робота по збірці (двері)",              unit: "грн/шт",  section: "door" },
-  d_admin:          { val: 120,    name: "Адмін витрати (двері)",                 unit: "грн",     section: "door" },
-  // --- shared ---
-  profitMargin:     { val: 3,      name: "Гешефт виробництва",                    unit: "%",       section: "shared" },
-  wasteMargin:      { val: 3,      name: "Відходність матеріалу",                  unit: "%",       section: "shared" },
-};
+      async function init() {
+        const saved = await dbGet("prices");
+        for (const key of Object.keys(DEFAULTS)) prices[key] = saved && saved[key] !== undefined ? saved[key] : DEFAULTS[key].val;
+        renderPricesTab();
+        recalc();
+      }
 
-let prices = {};
-let showFormulas = false;
-let currentType = 'w_gr';
-let currentCat = 'win';
-let currentColor = 'white';
+      function toast(msg) {
+        const el = document.getElementById("toast");
+        el.textContent = msg;
+        el.classList.add("show");
+        setTimeout(() => el.classList.remove("show"), 1800);
+      }
 
-const COLOR_NAMES = { white: "Білий", anthracite: "Антрацит 7016", brown: "Коричневий 8017" };
+      function switchTab(tab) {
+        document.getElementById("tab-calc").style.display = tab === "calc" ? "" : "none";
+        document.getElementById("tab-prices").style.display = tab === "prices" ? "" : "none";
+        document
+          .querySelectorAll(".tabs .tab")
+          .forEach((t, i) => t.classList.toggle("active", (i === 0 && tab === "calc") || (i === 1 && tab === "prices")));
+        if (tab === "calc") recalc();
+      }
 
-const TYPE_LABELS = {
-  w_gr:       "Вікно ГР — Z кріплення",
-  w_vr:       "Вікно ВР — Z кріплення",
-  w_gr_vsn:   "Вікно ГР — VSN кліпси",
-  w_vr_vsn:   "Вікно ВР — VSN кліпси",
-  d_vr_rr:    "Двері ВР — Рама / Рама",
-  d_vr_rp:    "Двері ВР — Рама / Поріг",
-  d_gr_rr:    "Двері ГР — Рама / Рама",
-  d_gr_rp:    "Двері ГР — Рама / Поріг",
-};
+      function setCat(cat) {
+        currentCat = cat;
+        document.getElementById("cat-win").className = "cat-tab" + (cat === "win" ? " active-win" : "");
+        document.getElementById("cat-door").className = "cat-tab" + (cat === "door" ? " active-door" : "");
+        document.getElementById("type-tabs-win").style.display = cat === "win" ? "" : "none";
+        document.getElementById("type-tabs-door").style.display = cat === "door" ? "" : "none";
+        if (cat === "win") {
+          setType("w_gr");
+        } else {
+          setType("d_vr_rr");
+          // Set default door sizes
+          if (parseInt(document.getElementById("inp-h").value) < 1500) {
+            document.getElementById("inp-w").value = "700";
+            document.getElementById("inp-h").value = "2100";
+          }
+        }
+      }
 
-// === IndexedDB ===
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open("plisse-all-v2", 1);
-    req.onupgradeneeded = () => req.result.createObjectStore("config");
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-async function dbGet(key) { const db = await openDB(); return new Promise(r => { const rq = db.transaction("config","readonly").objectStore("config").get(key); rq.onsuccess = () => r(rq.result); rq.onerror = () => r(null); }); }
-async function dbSet(key, val) { const db = await openDB(); return new Promise(r => { const tx = db.transaction("config","readwrite"); tx.objectStore("config").put(val, key); tx.oncomplete = () => r(); }); }
+      function setType(type) {
+        currentType = type;
+        currentCat = type.startsWith("d_") ? "door" : "win";
+        const isDoor = currentCat === "door";
 
-async function init() {
-  const saved = await dbGet("prices");
-  for (const key of Object.keys(DEFAULTS)) prices[key] = (saved && saved[key] !== undefined) ? saved[key] : DEFAULTS[key].val;
-  renderPricesTab();
-  recalc();
-}
+        // Update type tab buttons
+        const winTabs = document.querySelectorAll("#type-tabs-win .type-tab");
+        const doorTabs = document.querySelectorAll("#type-tabs-door .type-tab");
+        const winTypes = ["w_vr", "w_gr", "w_vr_vsn", "w_gr_vsn"];
+        const doorTypes = ["d_vr_rr", "d_vr_rp", "d_gr_rr", "d_gr_rp"];
+        winTabs.forEach((t, i) => (t.className = "type-tab" + (type === winTypes[i] ? " active" : "")));
+        doorTabs.forEach((t, i) => (t.className = "type-tab" + (type === doorTypes[i] ? " active-d" : "")));
 
-function toast(msg) { const el = document.getElementById("toast"); el.textContent = msg; el.classList.add("show"); setTimeout(() => el.classList.remove("show"), 1800); }
+        document.getElementById("type-label").textContent = TYPE_LABELS[type] + " · " + COLOR_NAMES[currentColor];
+        recalc();
+      }
 
-function switchTab(tab) {
-  document.getElementById("tab-calc").style.display = tab === "calc" ? "" : "none";
-  document.getElementById("tab-prices").style.display = tab === "prices" ? "" : "none";
-  document.querySelectorAll(".tabs .tab").forEach((t, i) => t.classList.toggle("active", (i===0&&tab==="calc")||(i===1&&tab==="prices")));
-  if (tab === "calc") recalc();
-}
+      function switchSub(sub) {
+        document.getElementById("sub-mat").style.display = sub === "mat" ? "" : "none";
+        document.getElementById("sub-cut").style.display = sub === "cut" ? "" : "none";
+        document
+          .querySelectorAll(".sub-tab")
+          .forEach((t, i) => t.classList.toggle("active", (i === 0 && sub === "mat") || (i === 1 && sub === "cut")));
+      }
 
-function setCat(cat) {
-  currentCat = cat;
-  document.getElementById("cat-win").className = "cat-tab" + (cat==="win" ? " active-win" : "");
-  document.getElementById("cat-door").className = "cat-tab" + (cat==="door" ? " active-door" : "");
-  document.getElementById("type-tabs-win").style.display = cat==="win" ? "" : "none";
-  document.getElementById("type-tabs-door").style.display = cat==="door" ? "" : "none";
-  if (cat === "win") {
-    setType("w_gr");
-  } else {
-    setType("d_vr_rr");
-    // Set default door sizes
-    if (parseInt(document.getElementById("inp-h").value) < 1500) {
-      document.getElementById("inp-w").value = "700";
-      document.getElementById("inp-h").value = "2100";
-    }
-  }
-}
+      function setColor(color) {
+        currentColor = color;
+        document.querySelectorAll(".color-btn").forEach((b) => b.classList.toggle("active", b.getAttribute("onclick").includes(color)));
+        updateLabel();
+      }
 
-function setType(type) {
-  currentType = type;
-  currentCat = type.startsWith("d_") ? "door" : "win";
-  const isDoor = currentCat === "door";
+      function updateLabel() {
+        document.getElementById("type-label").textContent = TYPE_LABELS[currentType] + " · " + COLOR_NAMES[currentColor];
+      }
 
-  // Update type tab buttons
-  const winTabs = document.querySelectorAll("#type-tabs-win .type-tab");
-  const doorTabs = document.querySelectorAll("#type-tabs-door .type-tab");
-  const winTypes = ["w_vr","w_gr","w_vr_vsn","w_gr_vsn"];
-  const doorTypes = ["d_vr_rr","d_vr_rp","d_gr_rr","d_gr_rp"];
-  winTabs.forEach((t,i) => t.className = "type-tab" + (type===winTypes[i] ? " active" : ""));
-  doorTabs.forEach((t,i) => t.className = "type-tab" + (type===doorTypes[i] ? " active-d" : ""));
+      function toggleFormulas() {
+        showFormulas = !showFormulas;
+        document.getElementById("toggle-formulas").classList.toggle("active", showFormulas);
+        document.getElementById("toggle-text").textContent = showFormulas ? "▾ Сховати формули" : "▸ Показати формули";
+        recalc();
+      }
 
-  document.getElementById("type-label").textContent = TYPE_LABELS[type] + " · " + COLOR_NAMES[currentColor];
-  recalc();
-}
+      // ========== WINDOW CALC ==========
+      function calcWindow(W, H, mk) {
+        const p = prices;
+        const isGR = currentType === "w_gr" || currentType === "w_gr_vsn";
+        const isVSN = currentType.includes("vsn");
+        const mountLabel = isVSN ? "VSN кліпси" : "Z кріпл.";
 
-function switchSub(sub) {
-  document.getElementById("sub-mat").style.display = sub==="mat" ? "" : "none";
-  document.getElementById("sub-cut").style.display = sub==="cut" ? "" : "none";
-  document.querySelectorAll(".sub-tab").forEach((t,i) => t.classList.toggle("active", (i===0&&sub==="mat")||(i===1&&sub==="cut")));
-}
+        // Cutlist — VSN has different offsets (from КЛІПСИ sheets)
+        let ramaHoriz, ramaVert, ruchkaLen;
+        if (isGR && !isVSN) {
+          ramaHoriz = W - 61;
+          ramaVert = H - 29;
+          ruchkaLen = W - 90 + 18;
+        }
+        if (isGR && isVSN) {
+          ramaHoriz = W - 61;
+          ramaVert = H - 35;
+          ruchkaLen = W - 90 + 15;
+        }
+        if (!isGR && !isVSN) {
+          ramaHoriz = W - 29;
+          ramaVert = H - 61;
+          ruchkaLen = H - 90 + 18;
+        }
+        if (!isGR && isVSN) {
+          ramaHoriz = W - 29;
+          ramaVert = H - 65;
+          ruchkaLen = H - 90 + 15;
+        }
 
-function setColor(color) {
-  currentColor = color;
-  document.querySelectorAll(".color-btn").forEach(b => b.classList.toggle("active", b.getAttribute("onclick").includes(color)));
-  updateLabel();
-}
+        const meshLen = ruchkaLen + 38;
+        const pvhLen = meshLen - 20;
+        const brushLen = ruchkaLen + 30;
+        const nitkaCr = (W + H) * 2 + 200;
+        const nitkaVn = (W + 350) * 2 + H + 250;
+        let eyeletCount;
+        if (isGR) eyeletCount = W <= 1000 ? 8 : W <= 1500 ? 10 : 12;
+        else eyeletCount = H <= 2000 ? 16 : H <= 2500 ? 20 : 24;
+        const clipZ = isVSN ? 0 : 6;
 
-function updateLabel() {
-  document.getElementById("type-label").textContent = TYPE_LABELS[currentType] + " · " + COLOR_NAMES[currentColor];
-}
+        const cuts = [
+          { name: "Профіль рами горизонт.", size: ramaHoriz, qty: 2 },
+          { name: "Профіль рами вертикал.", size: ramaVert, qty: 2 },
+          { name: "Профіль ручки", size: ruchkaLen, qty: 1 },
+          { name: "Плісирована сітка", size: meshLen, qty: 1 },
+          { name: "Основа ПВХ", size: pvhLen, qty: 2 },
+          { name: "Щітковий ущільнювач", size: brushLen, qty: 1 },
+          { name: "Нитка крайня", size: nitkaCr, qty: 2 },
+          { name: "Нитка крайня внутр.", size: nitkaVn, qty: 1 },
+        ];
+        if (!isVSN) cuts.push({ name: "Кліпса Z кріплення", size: null, qty: clipZ });
+        cuts.push({ name: "Люверс металевий", size: null, qty: eyeletCount });
 
-function toggleFormulas() {
-  showFormulas = !showFormulas;
-  document.getElementById("toggle-formulas").classList.toggle("active", showFormulas);
-  document.getElementById("toggle-text").textContent = showFormulas ? "▾ Сховати формули" : "▸ Показати формули";
-  recalc();
-}
+        // Cost
+        const ramaMP = (ramaHoriz * 2 + ramaVert * 2) / 1000;
+        const ruchkaMP = ruchkaLen / 1000;
+        const meshM2 = ((W * H) / 1e6) * 1.8;
+        const pvhMP = (pvhLen * 2) / 1000;
+        const nitkaMP = (nitkaCr * 2 + nitkaVn) / 1000;
+        const brushMP = brushLen / 1000;
 
-// ========== WINDOW CALC ==========
-function calcWindow(W, H, mk) {
-  const p = prices;
-  const isGR  = currentType === "w_gr" || currentType === "w_gr_vsn";
-  const isVSN = currentType.includes("vsn");
-  const mountLabel = isVSN ? "VSN кліпси" : "Z кріпл.";
+        const cRama = ramaMP * p.w_profileRama;
+        const cRuchka = ruchkaMP * p.w_profileRuchka;
+        const cMesh = meshM2 * p.w_meshNet14;
+        const cAks = p.w_aksKit;
+        const cPvh = pvhMP * p.w_pvhOsnova;
+        const cNitka = nitkaMP * p.w_nitkaMegafil;
+        const cBrush = brushMP * p.w_brushSeal;
+        const cClipZ = clipZ * p.w_clipZ;
+        const cEyelet = eyeletCount * p.w_eyelet;
+        const cWork = p.w_workshop;
 
-  // Cutlist — VSN has different offsets (from КЛІПСИ sheets)
-  let ramaHoriz, ramaVert, ruchkaLen;
-  if (isGR && !isVSN) { ramaHoriz = W-61; ramaVert = H-29; ruchkaLen = W-90+18; }
-  if (isGR &&  isVSN) { ramaHoriz = W-61; ramaVert = H-35; ruchkaLen = W-90+15; }
-  if (!isGR && !isVSN){ ramaHoriz = W-29; ramaVert = H-61; ruchkaLen = H-90+18; }
-  if (!isGR &&  isVSN){ ramaHoriz = W-29; ramaVert = H-65; ruchkaLen = H-90+15; }
+        const materials = [
+          {
+            name: "Профіль рами",
+            val: cRama,
+            raw: `${ramaMP.toFixed(3)} м.п. × ціна`,
+            formula: `${ramaMP.toFixed(3)} × ${p.w_profileRama} = ${cRama.toFixed(2)}`,
+          },
+          {
+            name: "Профіль ручки",
+            val: cRuchka,
+            raw: `${ruchkaLen}/1000 × ціна`,
+            formula: `${ruchkaMP.toFixed(3)} × ${p.w_profileRuchka} = ${cRuchka.toFixed(2)}`,
+          },
+          {
+            name: "Плісирована сітка 14мм",
+            val: cMesh,
+            raw: `(Ш×В/10⁶)×1.8 × ціна`,
+            formula: `${meshM2.toFixed(4)} м² × ${p.w_meshNet14} = ${cMesh.toFixed(2)}`,
+          },
+          { name: "Комплект аксесуарів", val: cAks, raw: "1 × ціна", formula: `1 × ${p.w_aksKit} = ${cAks.toFixed(2)}` },
+          {
+            name: "Основа ПВХ",
+            val: cPvh,
+            raw: `${pvhMP.toFixed(3)} м.п. × ціна`,
+            formula: `${pvhMP.toFixed(3)} × ${p.w_pvhOsnova} = ${cPvh.toFixed(2)}`,
+          },
+          {
+            name: "Нитка MEGAFIL",
+            val: cNitka,
+            raw: `${nitkaMP.toFixed(3)} м.п. × ціна`,
+            formula: `${nitkaMP.toFixed(3)} × ${p.w_nitkaMegafil} = ${cNitka.toFixed(2)}`,
+          },
+          {
+            name: "Щітковий ущільнювач",
+            val: cBrush,
+            raw: `${brushMP.toFixed(3)} м.п. × ціна`,
+            formula: `${brushMP.toFixed(3)} × ${p.w_brushSeal} = ${cBrush.toFixed(2)}`,
+          },
+        ];
+        if (!isVSN) {
+          materials.push({
+            name: `Кліпса Z (${clipZ} шт)`,
+            val: cClipZ,
+            raw: `${clipZ} × ціна`,
+            formula: `${clipZ} × ${p.w_clipZ} = ${cClipZ.toFixed(2)}`,
+          });
+        }
+        materials.push(
+          {
+            name: `Люверс (${eyeletCount} шт)`,
+            val: cEyelet,
+            raw: `${eyeletCount} × ціна`,
+            formula: `${eyeletCount} × ${p.w_eyelet} = ${cEyelet.toFixed(2)}`,
+          },
+          { name: "Робота по збірці", val: cWork },
+        );
 
-  const meshLen = ruchkaLen + 38;
-  const pvhLen = meshLen - 20;
-  const brushLen = ruchkaLen + 30;
-  const nitkaCr = (W+H)*2+200;
-  const nitkaVn = (W+350)*2+H+250;
-  let eyeletCount;
-  if (isGR) eyeletCount = W<=1000 ? 8 : W<=1500 ? 10 : 12;
-  else      eyeletCount = H<=2000 ? 16 : H<=2500 ? 20 : 24;
-  const clipZ = isVSN ? 0 : 6;
+        const matTotal = materials.reduce((s, m) => s + m.val, 0);
+        const admin = p.w_admin;
+        const profit = matTotal * (p.profitMargin / 100);
+        const wasteBase = cRama + cRuchka + cMesh + cNitka + cBrush + cPvh;
+        const waste = wasteBase * (p.wasteMargin / 100);
 
-  const cuts = [
-    { name: "Профіль рами горизонт.", size: ramaHoriz, qty: 2 },
-    { name: "Профіль рами вертикал.", size: ramaVert, qty: 2 },
-    { name: "Профіль ручки", size: ruchkaLen, qty: 1 },
-    { name: "Плісирована сітка", size: meshLen, qty: 1 },
-    { name: "Основа ПВХ", size: pvhLen, qty: 2 },
-    { name: "Щітковий ущільнювач", size: brushLen, qty: 1 },
-    { name: "Нитка крайня", size: nitkaCr, qty: 2 },
-    { name: "Нитка крайня внутр.", size: nitkaVn, qty: 1 },
-  ];
-  if (!isVSN) cuts.push({ name: "Кліпса Z кріплення", size: null, qty: clipZ });
-  cuts.push({ name: "Люверс металевий", size: null, qty: eyeletCount });
+        return { cuts, materials, matTotal, admin, profit, waste };
+      }
 
-  // Cost
-  const ramaMP = (ramaHoriz*2 + ramaVert*2)/1000;
-  const ruchkaMP = ruchkaLen/1000;
-  const meshM2 = (W*H/1e6)*1.8;
-  const pvhMP = (pvhLen*2)/1000;
-  const nitkaMP = (nitkaCr*2 + nitkaVn)/1000;
-  const brushMP = brushLen/1000;
+      // ========== SEGMENT TABLE (eyelets for doors) ==========
+      // From ДВ(ВР) РАМА / ПОРОГ sheets — universal for all door types
+      // dim = height for ВР, width for ГР
+      function getSegmentData(dim) {
+        if (dim <= 1300) return { segments: 3, channels: 4, eyelets: 8, range: "≤1300" };
+        if (dim <= 2100) return { segments: 5, channels: 6, eyelets: 12, range: "1301–2100" };
+        if (dim <= 2900) return { segments: 7, channels: 8, eyelets: 16, range: "2101–2900" };
+        return { segments: 9, channels: 10, eyelets: 20, range: ">2900" };
+      }
 
-  const cRama = ramaMP * p.w_profileRama;
-  const cRuchka = ruchkaMP * p.w_profileRuchka;
-  const cMesh = meshM2 * p.w_meshNet14;
-  const cAks = p.w_aksKit;
-  const cPvh = pvhMP * p.w_pvhOsnova;
-  const cNitka = nitkaMP * p.w_nitkaMegafil;
-  const cBrush = brushMP * p.w_brushSeal;
-  const cClipZ = clipZ * p.w_clipZ;
-  const cEyelet = eyeletCount * p.w_eyelet;
-  const cWork = p.w_workshop;
+      // ========== DOOR CALC ==========
+      function calcDoor(W, H, mk) {
+        const p = prices;
+        const type = currentType;
+        const isVR = type.includes("vr");
+        const isPorog = type.includes("rp");
 
-  const materials = [
-    { name: "Профіль рами", val: cRama, raw: `${ramaMP.toFixed(3)} м.п. × ціна`, formula: `${ramaMP.toFixed(3)} × ${p.w_profileRama} = ${cRama.toFixed(2)}` },
-    { name: "Профіль ручки", val: cRuchka, raw: `${ruchkaLen}/1000 × ціна`, formula: `${ruchkaMP.toFixed(3)} × ${p.w_profileRuchka} = ${cRuchka.toFixed(2)}` },
-    { name: "Плісирована сітка 14мм", val: cMesh, raw: `(Ш×В/10⁶)×1.8 × ціна`, formula: `${meshM2.toFixed(4)} м² × ${p.w_meshNet14} = ${cMesh.toFixed(2)}` },
-    { name: "Комплект аксесуарів", val: cAks, raw: "1 × ціна", formula: `1 × ${p.w_aksKit} = ${cAks.toFixed(2)}` },
-    { name: "Основа ПВХ", val: cPvh, raw: `${pvhMP.toFixed(3)} м.п. × ціна`, formula: `${pvhMP.toFixed(3)} × ${p.w_pvhOsnova} = ${cPvh.toFixed(2)}` },
-    { name: "Нитка MEGAFIL", val: cNitka, raw: `${nitkaMP.toFixed(3)} м.п. × ціна`, formula: `${nitkaMP.toFixed(3)} × ${p.w_nitkaMegafil} = ${cNitka.toFixed(2)}` },
-    { name: "Щітковий ущільнювач", val: cBrush, raw: `${brushMP.toFixed(3)} м.п. × ціна`, formula: `${brushMP.toFixed(3)} × ${p.w_brushSeal} = ${cBrush.toFixed(2)}` },
-  ];
-  if (!isVSN) {
-    materials.push({ name: `Кліпса Z (${clipZ} шт)`, val: cClipZ, raw: `${clipZ} × ціна`, formula: `${clipZ} × ${p.w_clipZ} = ${cClipZ.toFixed(2)}` });
-  }
-  materials.push(
-    { name: `Люверс (${eyeletCount} шт)`, val: cEyelet, raw: `${eyeletCount} × ціна`, formula: `${eyeletCount} × ${p.w_eyelet} = ${cEyelet.toFixed(2)}` },
-    { name: "Робота по збірці", val: cWork },
-  );
+        // --- Cutlist ---
+        let korpusHoriz, korpusVert, korpusHorizQty, korpusVertQty;
+        let ruchkaLen, meshVS, meshRebr, osnovaLen;
 
-  const matTotal = materials.reduce((s,m) => s+m.val, 0);
-  const admin = p.w_admin;
-  const profit = matTotal * (p.profitMargin/100);
-  const wasteBase = cRama + cRuchka + cMesh + cNitka + cBrush + cPvh;
-  const waste = wasteBase * (p.wasteMargin/100);
+        if (isVR) {
+          korpusHoriz = isPorog ? W - 38 : W - 38;
+          korpusVert = isPorog ? H - 55 : H - 72;
+          korpusHorizQty = isPorog ? 1 : 2;
+          korpusVertQty = 2;
+          ruchkaLen = isPorog ? H - 62 : H - 82;
+          meshVS = isPorog ? H - 21 : H - 41;
+          meshRebr = W / 23;
+          osnovaLen = isPorog ? H - 82 : H - 82;
+        } else {
+          korpusHoriz = isPorog ? W - 72 : W - 72;
+          korpusVert = isPorog ? H - 38 : H - 38;
+          korpusHorizQty = isPorog ? 1 : 2;
+          korpusVertQty = 2;
+          ruchkaLen = isPorog ? W - 82 : W - 82;
+          meshVS = isPorog ? W - 41 : W - 41;
+          meshRebr = H / 23;
+          osnovaLen = isPorog ? W - 82 : W - 82;
+        }
 
-  return { cuts, materials, matTotal, admin, profit, waste };
-}
+        const nitkaCr = (W + H) * 2 + 200;
+        const nitkaVn = isVR ? (W + 350) * 2 + H + 250 : (H + 350) * 2 + W + 250;
 
-// ========== SEGMENT TABLE (eyelets for doors) ==========
-// From ДВ(ВР) РАМА / ПОРОГ sheets — universal for all door types
-// dim = height for ВР, width for ГР
-function getSegmentData(dim) {
-  if (dim <= 1300) return { segments: 3, channels: 4, eyelets: 8,  range: "≤1300" };
-  if (dim <= 2100) return { segments: 5, channels: 6, eyelets: 12, range: "1301–2100" };
-  if (dim <= 2900) return { segments: 7, channels: 8, eyelets: 16, range: "2101–2900" };
-  return                   { segments: 9, channels: 10, eyelets: 20, range: ">2900" };
-}
+        // Люверси — сегментна таблиця з листів розкрою
+        // dim = висота (ВР) або ширина (ГР) — напрямок руху сітки
+        const eyeletDim = isVR ? H : W;
+        const eyeletSeg = getSegmentData(eyeletDim);
+        const eyeletCount = eyeletSeg.eyelets;
 
-// ========== DOOR CALC ==========
-function calcDoor(W, H, mk) {
-  const p = prices;
-  const type = currentType;
-  const isVR = type.includes("vr");
-  const isPorog = type.includes("rp");
+        const cuts = [
+          { name: "Профіль корпус горизонт.", size: korpusHoriz, qty: korpusHorizQty },
+          { name: "Профіль корпус вертикал.", size: korpusVert, qty: korpusVertQty },
+          { name: "Профіль ручка", size: ruchkaLen, qty: 1 },
+        ];
+        if (isPorog) cuts.push({ name: "Профіль поріг", size: isVR ? W - 40 : W - 40, qty: 1 });
+        cuts.push(
+          { name: "Сітка плісована (ВС)", size: meshVS, qty: 1 },
+          { name: `Сітка ребра`, size: null, qty: Math.round(meshRebr), unit: "ребр" },
+          { name: "Основа ПВХ", size: osnovaLen, qty: 2 },
+          { name: "Нитка крайня", size: nitkaCr, qty: 2 },
+          { name: "Нитка внутрішня", size: nitkaVn, qty: 1 },
+          { name: `Люверс (${eyeletSeg.range}, ${eyeletSeg.segments} сегм.)`, size: null, qty: eyeletCount },
+        );
 
-  // --- Cutlist ---
-  let korpusHoriz, korpusVert, korpusHorizQty, korpusVertQty;
-  let ruchkaLen, meshVS, meshRebr, osnovaLen;
+        // --- Cost (СБОРКА formulas) ---
+        // Крило
+        const kryloMP = isVR ? H / 1000 : W / 1000;
+        const cKrylo = kryloMP * p.d_profileKrylo;
 
-  if (isVR) {
-    korpusHoriz = isPorog ? W-38 : W-38;
-    korpusVert  = isPorog ? H-55 : H-72;
-    korpusHorizQty = isPorog ? 1 : 2;
-    korpusVertQty  = 2;
-    ruchkaLen   = isPorog ? H-62 : H-82;
-    meshVS      = isPorog ? H-21 : H-41;
-    meshRebr    = W/23;
-    osnovaLen   = isPorog ? H-82 : H-82;
-  } else {
-    korpusHoriz = isPorog ? W-72 : W-72;
-    korpusVert  = isPorog ? H-38 : H-38;
-    korpusHorizQty = isPorog ? 1 : 2;
-    korpusVertQty  = 2;
-    ruchkaLen   = isPorog ? W-82 : W-82;
-    meshVS      = isPorog ? W-41 : W-41;
-    meshRebr    = H/23;
-    osnovaLen   = isPorog ? W-82 : W-82;
-  }
+        // Корпус
+        let korpusMP;
+        if (isPorog)
+          korpusMP = (W + H * 2) / 1000; // 1 horiz + 2 vert
+        else korpusMP = ((W + H) * 2) / 1000; // perimeter
+        const cKorpus = korpusMP * p.d_profileKorpus;
 
-  const nitkaCr = (W+H)*2+200;
-  const nitkaVn = isVR ? (W+350)*2+H+250 : (H+350)*2+W+250;
+        // Порог
+        const cPorog = isPorog ? (W / 1000) * p.d_porog : 0;
 
-  // Люверси — сегментна таблиця з листів розкрою
-  // dim = висота (ВР) або ширина (ГР) — напрямок руху сітки
-  const eyeletDim = isVR ? H : W;
-  const eyeletSeg = getSegmentData(eyeletDim);
-  const eyeletCount = eyeletSeg.eyelets;
+        // Сітка 19мм — уніфікована формула (як для вікон, враховує відходи)
+        const meshM2 = ((W * H) / 1e6) * 1.8;
+        const cMesh = meshM2 * p.d_meshNet19;
 
-  const cuts = [
-    { name: "Профіль корпус горизонт.", size: korpusHoriz, qty: korpusHorizQty },
-    { name: "Профіль корпус вертикал.", size: korpusVert, qty: korpusVertQty },
-    { name: "Профіль ручка", size: ruchkaLen, qty: 1 },
-  ];
-  if (isPorog) cuts.push({ name: "Профіль поріг", size: isVR ? W-40 : W-40, qty: 1 });
-  cuts.push(
-    { name: "Сітка плісована (ВС)", size: meshVS, qty: 1 },
-    { name: `Сітка ребра`, size: null, qty: Math.round(meshRebr), unit: "ребр" },
-    { name: "Основа ПВХ", size: osnovaLen, qty: 2 },
-    { name: "Нитка крайня", size: nitkaCr, qty: 2 },
-    { name: "Нитка внутрішня", size: nitkaVn, qty: 1 },
-    { name: `Люверс (${eyeletSeg.range}, ${eyeletSeg.segments} сегм.)`, size: null, qty: eyeletCount },
-  );
+        // Комплект безпорогових (только для Р/П — дополнительно)
+        const cAksBezporog = isPorog ? p.d_aksBezporog : 0;
 
-  // --- Cost (СБОРКА formulas) ---
-  // Крило
-  const kryloMP = isVR ? H/1000 : W/1000;
-  const cKrylo = kryloMP * p.d_profileKrylo;
+        // Комплект аксесуарів (всегда)
+        const cAks = p.d_aksKit;
 
-  // Корпус
-  let korpusMP;
-  if (isPorog) korpusMP = (W + H*2)/1000;  // 1 horiz + 2 vert
-  else         korpusMP = (W+H)*2/1000;     // perimeter
-  const cKorpus = korpusMP * p.d_profileKorpus;
+        // ПВХ плоский
+        const pvhMP = (H * 2) / 1000;
+        const cPvh = pvhMP * p.d_pvhFlat19;
 
-  // Порог
-  const cPorog = isPorog ? (W/1000) * p.d_porog : 0;
+        // Кришки
+        const cCaps = p.d_pvhCaps;
 
-  // Сітка 19мм — уніфікована формула (як для вікон, враховує відходи)
-  const meshM2 = (W * H / 1e6) * 1.8;
-  const cMesh = meshM2 * p.d_meshNet19;
+        // Мотузка
+        const ropeMP = ((W + H) / 1000) * 8;
+        const cRope = ropeMP * p.d_rope;
 
-  // Комплект безпорогових (только для Р/П — дополнительно)
-  const cAksBezporog = isPorog ? p.d_aksBezporog : 0;
+        // Щітка
+        const brushMP = isVR ? H / 1000 : W / 1000;
+        const cBrush = brushMP * p.d_brush;
 
-  // Комплект аксесуарів (всегда)
-  const cAks = p.d_aksKit;
+        // Саморези
+        const cScrews = 8 * p.d_screwPrice;
 
-  // ПВХ плоский
-  const pvhMP = H*2/1000;
-  const cPvh = pvhMP * p.d_pvhFlat19;
+        // Люверси
+        const cEyelet = eyeletCount * p.d_eyelet;
 
-  // Кришки
-  const cCaps = p.d_pvhCaps;
+        // Робота
+        const cWork = p.d_workshop;
 
-  // Мотузка
-  const ropeMP = (W+H)/1000 * 8;
-  const cRope = ropeMP * p.d_rope;
+        const materials = [];
+        if (isPorog)
+          materials.push({
+            name: "Профіль поріг",
+            val: cPorog,
+            raw: `Ш/1000 × ціна_поріг`,
+            formula: `${(W / 1000).toFixed(3)} × ${p.d_porog} = ${cPorog.toFixed(2)}`,
+          });
+        materials.push(
+          {
+            name: "Профіль крило 28мм",
+            val: cKrylo,
+            raw: `${isVR ? "В" : "Ш"}/1000 × ціна_крило`,
+            formula: `${kryloMP.toFixed(3)} × ${p.d_profileKrylo} = ${cKrylo.toFixed(2)}`,
+          },
+          {
+            name: "Профіль корпус 28мм",
+            val: cKorpus,
+            raw: isPorog ? `(Ш+В×2)/1000 × ціна` : `(Ш+В)×2/1000 × ціна`,
+            formula: `${korpusMP.toFixed(3)} × ${p.d_profileKorpus} = ${cKorpus.toFixed(2)}`,
+          },
+          {
+            name: "Сітка плісована 19мм",
+            val: cMesh,
+            raw: `(Ш×В/10⁶)×1.8 × ціна`,
+            formula: `${meshM2.toFixed(4)} м² × ${p.d_meshNet19} = ${cMesh.toFixed(2)}`,
+          },
+        );
+        if (isPorog)
+          materials.push({
+            name: "Компл. безпорогових аксес.",
+            val: cAksBezporog,
+            raw: "1 × ціна",
+            formula: `1 × ${p.d_aksBezporog} = ${cAksBezporog.toFixed(2)}`,
+          });
+        materials.push(
+          { name: "Комплект аксесуарів 28мм", val: cAks, raw: "1 × ціна", formula: `1 × ${p.d_aksKit} = ${cAks.toFixed(2)}` },
+          {
+            name: "Профіль плоский ПВХ 19мм",
+            val: cPvh,
+            raw: `В×2/1000 × ціна`,
+            formula: `${pvhMP.toFixed(3)} × ${p.d_pvhFlat19} = ${cPvh.toFixed(2)}`,
+          },
+          { name: "ПВХ кришки", val: cCaps, raw: "1 × ціна", formula: `1 × ${p.d_pvhCaps} = ${cCaps.toFixed(2)}` },
+          { name: "Синтетична мотузка", val: cRope, raw: `(Ш+В)/1000×8 × ціна`, formula: `${ropeMP.toFixed(3)} × ${p.d_rope} = ${cRope.toFixed(2)}` },
+          {
+            name: "Ущільнювач-щітка",
+            val: cBrush,
+            raw: `${isVR ? "В" : "Ш"}/1000 × ціна`,
+            formula: `${brushMP.toFixed(3)} × ${p.d_brush} = ${cBrush.toFixed(2)}`,
+          },
+          { name: `Саморези (8 шт)`, val: cScrews, raw: `8 × 0.39`, formula: `8 × ${p.d_screwPrice} = ${cScrews.toFixed(2)}` },
+          {
+            name: `Люверс (${eyeletCount} шт)`,
+            val: cEyelet,
+            raw: `сегм.табл: ${isVR ? "В" : "Ш"}=${eyeletDim} → ${eyeletSeg.range} → ${eyeletSeg.segments} сегм., ${eyeletSeg.channels} кан.`,
+            formula: `${eyeletSeg.channels} кан. × 2 = ${eyeletCount} шт × ${p.d_eyelet.toFixed(4)} = ${cEyelet.toFixed(2)}`,
+          },
+          { name: "Робота по збірці", val: cWork },
+        );
 
-  // Щітка
-  const brushMP = isVR ? H/1000 : W/1000;
-  const cBrush = brushMP * p.d_brush;
+        const matTotal = materials.reduce((s, m) => s + m.val, 0);
+        const admin = p.d_admin;
 
-  // Саморези
-  const cScrews = 8 * p.d_screwPrice;
+        // Гешефт = SUM(rows 3..15) * 3% — all material rows excl. work, admin
+        const sumMatNoWork = matTotal - cWork;
+        const profit = sumMatNoWork * (p.profitMargin / 100);
 
-  // Люверси
-  const cEyelet = eyeletCount * p.d_eyelet;
+        // Відходність = (поріг+крило+корпус+сітка+мотузка+щітка) * 3%
+        const wasteBase = cPorog + cKrylo + cKorpus + cMesh + cRope + cBrush;
+        const waste = wasteBase * (p.wasteMargin / 100);
 
-  // Робота
-  const cWork = p.d_workshop;
+        return { cuts, materials, matTotal, admin, profit, waste };
+      }
 
-  const materials = [];
-  if (isPorog) materials.push({ name: "Профіль поріг", val: cPorog, raw: `Ш/1000 × ціна_поріг`, formula: `${(W/1000).toFixed(3)} × ${p.d_porog} = ${cPorog.toFixed(2)}` });
-  materials.push(
-    { name: "Профіль крило 28мм", val: cKrylo, raw: `${isVR?"В":"Ш"}/1000 × ціна_крило`, formula: `${kryloMP.toFixed(3)} × ${p.d_profileKrylo} = ${cKrylo.toFixed(2)}` },
-    { name: "Профіль корпус 28мм", val: cKorpus, raw: isPorog ? `(Ш+В×2)/1000 × ціна` : `(Ш+В)×2/1000 × ціна`, formula: `${korpusMP.toFixed(3)} × ${p.d_profileKorpus} = ${cKorpus.toFixed(2)}` },
-    { name: "Сітка плісована 19мм", val: cMesh, raw: `(Ш×В/10⁶)×1.8 × ціна`, formula: `${meshM2.toFixed(4)} м² × ${p.d_meshNet19} = ${cMesh.toFixed(2)}` },
-  );
-  if (isPorog) materials.push({ name: "Компл. безпорогових аксес.", val: cAksBezporog, raw: "1 × ціна", formula: `1 × ${p.d_aksBezporog} = ${cAksBezporog.toFixed(2)}` });
-  materials.push(
-    { name: "Комплект аксесуарів 28мм", val: cAks, raw: "1 × ціна", formula: `1 × ${p.d_aksKit} = ${cAks.toFixed(2)}` },
-    { name: "Профіль плоский ПВХ 19мм", val: cPvh, raw: `В×2/1000 × ціна`, formula: `${pvhMP.toFixed(3)} × ${p.d_pvhFlat19} = ${cPvh.toFixed(2)}` },
-    { name: "ПВХ кришки", val: cCaps, raw: "1 × ціна", formula: `1 × ${p.d_pvhCaps} = ${cCaps.toFixed(2)}` },
-    { name: "Синтетична мотузка", val: cRope, raw: `(Ш+В)/1000×8 × ціна`, formula: `${ropeMP.toFixed(3)} × ${p.d_rope} = ${cRope.toFixed(2)}` },
-    { name: "Ущільнювач-щітка", val: cBrush, raw: `${isVR?"В":"Ш"}/1000 × ціна`, formula: `${brushMP.toFixed(3)} × ${p.d_brush} = ${cBrush.toFixed(2)}` },
-    { name: `Саморези (8 шт)`, val: cScrews, raw: `8 × 0.39`, formula: `8 × ${p.d_screwPrice} = ${cScrews.toFixed(2)}` },
-    { name: `Люверс (${eyeletCount} шт)`, val: cEyelet, raw: `сегм.табл: ${isVR?"В":"Ш"}=${eyeletDim} → ${eyeletSeg.range} → ${eyeletSeg.segments} сегм., ${eyeletSeg.channels} кан.`, formula: `${eyeletSeg.channels} кан. × 2 = ${eyeletCount} шт × ${p.d_eyelet.toFixed(4)} = ${cEyelet.toFixed(2)}` },
-    { name: "Робота по збірці", val: cWork },
-  );
+      // ========== MAIN RECALC ==========
+      function recalc() {
+        const W = Math.max(0, parseInt(document.getElementById("inp-w").value) || 0);
+        const H = Math.max(0, parseInt(document.getElementById("inp-h").value) || 0);
+        const mk = Math.max(0, parseFloat(document.getElementById("inp-m").value) || 0);
+        const isDoor = currentType.startsWith("d_");
 
-  const matTotal = materials.reduce((s,m) => s+m.val, 0);
-  const admin = p.d_admin;
+        const r = isDoor ? calcDoor(W, H, mk) : calcWindow(W, H, mk);
+        const accentClass = isDoor ? "accent-d" : "accent";
 
-  // Гешефт = SUM(rows 3..15) * 3% — all material rows excl. work, admin
-  const sumMatNoWork = matTotal - cWork;
-  const profit = sumMatNoWork * (p.profitMargin/100);
-
-  // Відходність = (поріг+крило+корпус+сітка+мотузка+щітка) * 3%
-  const wasteBase = cPorog + cKrylo + cKorpus + cMesh + cRope + cBrush;
-  const waste = wasteBase * (p.wasteMargin/100);
-
-  return { cuts, materials, matTotal, admin, profit, waste };
-}
-
-// ========== MAIN RECALC ==========
-function recalc() {
-  const W = Math.max(0, parseInt(document.getElementById("inp-w").value) || 0);
-  const H = Math.max(0, parseInt(document.getElementById("inp-h").value) || 0);
-  const mk = Math.max(0, parseFloat(document.getElementById("inp-m").value) || 0);
-  const isDoor = currentType.startsWith("d_");
-
-  const r = isDoor ? calcDoor(W, H, mk) : calcWindow(W, H, mk);
-  const accentClass = isDoor ? "accent-d" : "accent";
-
-  // Cutlist
-  document.getElementById("cutlist").innerHTML = r.cuts.map(c =>
-    `<div class="cut-row">
+        // Cutlist
+        document.getElementById("cutlist").innerHTML = r.cuts
+          .map(
+            (c) =>
+              `<div class="cut-row">
       <span class="cut-name">${c.name}</span>
-      ${c.size !== null ? `<span class="cut-size">${Math.round(c.size)} ${c.unit||'мм'}</span>` : '<span class="cut-size"></span>'}
+      ${c.size !== null ? `<span class="cut-size">${Math.round(c.size)} ${c.unit || "мм"}</span>` : '<span class="cut-size"></span>'}
       <span class="cut-qty">× ${c.qty}</span>
-    </div>`
-  ).join("");
+    </div>`,
+          )
+          .join("");
 
-  // Materials
-  document.getElementById("materials-list").innerHTML = r.materials.map(m => rowHTML(m)).join("");
-  document.getElementById("materials-total").innerHTML = totalRowHTML("Матеріали + робота", r.matTotal, false);
+        // Materials
+        document.getElementById("materials-list").innerHTML = r.materials.map((m) => rowHTML(m)).join("");
+        document.getElementById("materials-total").innerHTML = totalRowHTML("Матеріали + робота", r.matTotal, false);
 
-  // Overheads
-  const overheads = [
-    { name: "Адмін витрати", val: r.admin },
-    { name: `Гешефт виробництва ${prices.profitMargin}%`, val: r.profit },
-    { name: `Відходність матеріалу ${prices.wasteMargin}%`, val: r.waste },
-  ];
-  const ovhTotal = overheads.reduce((s,o) => s+o.val, 0);
-  document.getElementById("overheads-list").innerHTML = overheads.map(o => rowHTML(o, true)).join("");
-  document.getElementById("overheads-total").innerHTML = totalRowHTML("Накладні", ovhTotal, false);
+        // Overheads
+        const overheads = [
+          { name: "Адмін витрати", val: r.admin },
+          { name: `Гешефт виробництва ${prices.profitMargin}%`, val: r.profit },
+          { name: `Відходність матеріалу ${prices.wasteMargin}%`, val: r.waste },
+        ];
+        const ovhTotal = overheads.reduce((s, o) => s + o.val, 0);
+        document.getElementById("overheads-list").innerHTML = overheads.map((o) => rowHTML(o, true)).join("");
+        document.getElementById("overheads-total").innerHTML = totalRowHTML("Накладні", ovhTotal, false);
 
-  // Summary
-  const totalCost = r.matTotal + ovhTotal;
-  const salePrice = totalCost * (1 + mk/100);
-  document.getElementById("summary").innerHTML = `
+        // Summary
+        const totalCost = r.matTotal + ovhTotal;
+        const salePrice = totalCost * (1 + mk / 100);
+        document.getElementById("summary").innerHTML = `
     <div class="summary-line"><span>Собівартість (матеріали)</span><span class="val">${r.matTotal.toFixed(2)} ₴</span></div>
     <div class="summary-line dim"><span>+ Накладні</span><span class="val">+${ovhTotal.toFixed(2)} ₴</span></div>
     <div class="summary-line sep"><span>СЕБЕС</span><span class="val">${totalCost.toFixed(2)} ₴</span></div>
-    <div class="summary-line dim"><span>Націнка ${mk}%</span><span class="val">+${(salePrice-totalCost).toFixed(2)} ₴</span></div>
+    <div class="summary-line dim"><span>Націнка ${mk}%</span><span class="val">+${(salePrice - totalCost).toFixed(2)} ₴</span></div>
     ${totalRowHTML("Ціна продажу", salePrice, true, accentClass)}
   `;
-}
+      }
 
-function rowHTML(item, sub) {
-  return `<div class="row">
+      function rowHTML(item, sub) {
+        return `<div class="row">
     <div class="row-label">
-      <span class="row-name ${sub?'sub':''}">${item.name}</span>
-      ${showFormulas && item.raw ? `<span class="row-raw">${item.raw}</span>` : ''}
-      ${showFormulas && item.formula ? `<span class="row-formula">${item.formula}</span>` : ''}
+      <span class="row-name ${sub ? "sub" : ""}">${item.name}</span>
+      ${showFormulas && item.raw ? `<span class="row-raw">${item.raw}</span>` : ""}
+      ${showFormulas && item.formula ? `<span class="row-formula">${item.formula}</span>` : ""}
     </div>
-    <span class="row-value ${sub?'sub':''}">${item.val.toFixed(2)} ₴</span>
+    <span class="row-value ${sub ? "sub" : ""}">${item.val.toFixed(2)} ₴</span>
   </div>`;
-}
+      }
 
-function totalRowHTML(label, val, accent, cls) {
-  const c = cls || (accent ? "accent" : "subtle");
-  return `<div class="total-row ${c}"><span class="label">${label}</span><span class="val">${val.toFixed(2)} ₴</span></div>`;
-}
+      function totalRowHTML(label, val, accent, cls) {
+        const c = cls || (accent ? "accent" : "subtle");
+        return `<div class="total-row ${c}"><span class="label">${label}</span><span class="val">${val.toFixed(2)} ₴</span></div>`;
+      }
 
-// === PRICES TAB ===
-function renderPricesTab() {
-  let html = '<div class="price-section">Вікна 18мм</div>';
-  for (const [key, d] of Object.entries(DEFAULTS)) {
-    if (d.section === "door" && !html.includes("Двері")) html += '<div class="price-section door">Двері 28мм</div>';
-    if (d.section === "shared" && !html.includes("Загальні")) html += '<div class="price-section">Загальні</div>';
-    html += `<div class="price-row">
+      // === PRICES TAB ===
+      function renderPricesTab() {
+        let html = '<div class="price-section">Вікна 18мм</div>';
+        for (const [key, d] of Object.entries(DEFAULTS)) {
+          if (d.section === "door" && !html.includes("Двері")) html += '<div class="price-section door">Двері 28мм</div>';
+          if (d.section === "shared" && !html.includes("Загальні")) html += '<div class="price-section">Загальні</div>';
+          html += `<div class="price-row">
       <span class="price-name">${d.name}</span>
       <span class="price-unit">${d.unit}</span>
       <input class="price-input" id="price-${key}" inputmode="decimal" value="${prices[key]}" onchange="prices['${key}']=parseFloat(this.value)||0">
     </div>`;
-  }
-  document.getElementById("prices-list").innerHTML = html;
-}
+        }
+        document.getElementById("prices-list").innerHTML = html;
+      }
 
-async function savePrices() {
-  for (const key of Object.keys(DEFAULTS)) { const el = document.getElementById("price-"+key); if (el) prices[key] = parseFloat(el.value)||0; }
-  await dbSet("prices", {...prices}); toast("Ціни збережено ✓"); recalc();
-}
-function resetPrices() {
-  for (const key of Object.keys(DEFAULTS)) prices[key] = DEFAULTS[key].val;
-  renderPricesTab(); dbSet("prices", {...prices}); toast("Ціни скинуто"); recalc();
-}
+      async function savePrices() {
+        for (const key of Object.keys(DEFAULTS)) {
+          const el = document.getElementById("price-" + key);
+          if (el) prices[key] = parseFloat(el.value) || 0;
+        }
+        await dbSet("prices", { ...prices });
+        toast("Ціни збережено ✓");
+        recalc();
+      }
+      function resetPrices() {
+        for (const key of Object.keys(DEFAULTS)) prices[key] = DEFAULTS[key].val;
+        renderPricesTab();
+        dbSet("prices", { ...prices });
+        toast("Ціни скинуто");
+        recalc();
+      }
 
-init();
-</script>
-</body>
+      init();
+    </script>
+  </body>
 </html>
