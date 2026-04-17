@@ -825,53 +825,101 @@ function renderCart() {
   document.getElementById("cart-total").innerHTML = totalRowHTML(`Разом ${totalQty} шт`, totalSum, true, "accent");
 }
 
-// ========== PDF: ORDER ==========
-function printOrder() {
-  if (!cart.length) return;
-  const totalQty = cart.reduce((s, c) => s + c.qty, 0);
-  const totalSum = cart.reduce((s, c) => s + c.salePrice * c.qty, 0);
-  const date = new Date().toLocaleDateString("uk-UA");
+// ========== PDF GENERATION ==========
+const PDF_STYLES = `
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Onest','Segoe UI',sans-serif;padding:40px 36px;color:#1a1a1a;font-size:13px;line-height:1.5}
+    h1{font-size:20px;font-weight:700;margin-bottom:2px}
+    .date{color:#888;font-size:12px;margin-bottom:24px}
+    table{width:100%;border-collapse:collapse;margin-bottom:20px}
+    th{background:#f4f4f4;text-align:left;padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #ccc}
+    td{padding:7px 10px;border-bottom:1px solid #e5e5e5;vertical-align:top}
+    .r{text-align:right} .c{text-align:center} .b{font-weight:700}
+    .total-row td{font-weight:700;font-size:15px;background:#f8f8f8;border-top:2px solid #aaa;border-bottom:none}
+    .block{margin-bottom:24px;page-break-inside:avoid}
+    .block-hdr{padding:10px 14px;background:#f0f0f0;border-radius:6px;margin-bottom:8px;font-size:13px}
+    .block-hdr .num{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;background:#333;color:#fff;border-radius:50%;font-size:11px;font-weight:700;margin-right:10px}
+    .gen{text-align:center;color:#bbb;font-size:10px;margin-top:32px}
+  </style>`;
 
-  let rows = cart.map((item, i) => {
-    const lineTotal = item.salePrice * item.qty;
-    return `<tr>
-      <td>${i + 1}</td>
-      <td>${FULL_NAMES[item.type]}</td>
-      <td>${item.W}×${item.H}</td>
-      <td>${COLOR_NAMES[item.color]}</td>
-      <td style="text-align:center">${item.qty}</td>
-      <td style="text-align:right">${item.salePrice.toFixed(2)}</td>
-      <td style="text-align:right;font-weight:700">${lineTotal.toFixed(2)}</td>
-    </tr>`;
-  }).join("");
-
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-    <title>Замовлення ${date}</title>
-    <style>
-      body{font-family:'Segoe UI',sans-serif;padding:32px;color:#1a1a1a;font-size:14px}
-      h1{font-size:20px;margin-bottom:4px}
-      .date{color:#666;margin-bottom:24px}
-      table{width:100%;border-collapse:collapse;margin-bottom:24px}
-      th{background:#f0f0f0;text-align:left;padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #ccc}
-      td{padding:8px 10px;border-bottom:1px solid #e5e5e5;vertical-align:top}
-      tr:last-child td{border-bottom:2px solid #ccc}
-      .total-row td{font-weight:700;font-size:16px;background:#f8f8f8;border-bottom:none}
-      @media print{body{padding:16px}}
-    </style></head><body>
-    <h1>Замовлення москітних сіток плісе</h1>
-    <div class="date">${date}</div>
-    <table>
-      <thead><tr><th>№</th><th>Найменування</th><th>Розмір, мм</th><th>Колір</th><th>К-сть</th><th>Ціна, ₴</th><th>Сума, ₴</th></tr></thead>
-      <tbody>${rows}
-        <tr class="total-row"><td></td><td colspan="3">РАЗОМ</td><td style="text-align:center">${totalQty}</td><td></td><td style="text-align:right">${totalSum.toFixed(2)}</td></tr>
-      </tbody>
-    </table>
-    <script>window.onload=()=>window.print();<\/script>
+function openPdfPage(title, bodyHTML, filename) {
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"><\/script>
+    ${PDF_STYLES}
+  </head><body>
+    <div id="content">${bodyHTML}</div>
+    <script>
+      // Wait for fonts to load, then generate PDF
+      document.fonts.ready.then(() => {
+        setTimeout(() => {
+          html2pdf().set({
+            margin: [10, 8, 10, 8],
+            filename: '${filename}',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['avoid-all', 'css'] }
+          }).from(document.getElementById('content')).save().then(() => {
+            document.title = 'PDF збережено ✓';
+          });
+        }, 500);
+      });
+    <\/script>
   </body></html>`;
 
   const w = window.open("", "_blank");
   w.document.write(html);
   w.document.close();
+}
+
+// ========== PDF: ORDER ==========
+function printOrder() {
+  if (!cart.length) return;
+  const date = new Date().toLocaleDateString("uk-UA");
+  const totalQty = cart.reduce((s, c) => s + c.qty, 0);
+  const totalSum = cart.reduce((s, c) => s + c.salePrice * c.qty, 0);
+
+  let rows = cart.map((item, i) => {
+    const sum = item.salePrice * item.qty;
+    return `<tr>
+      <td class="c">${i+1}</td>
+      <td>${FULL_NAMES[item.type]}</td>
+      <td>${item.W}×${item.H}</td>
+      <td>${COLOR_NAMES[item.color]}</td>
+      <td class="c">${item.qty}</td>
+      <td class="r">${item.salePrice.toFixed(2)}</td>
+      <td class="r b">${sum.toFixed(2)}</td>
+    </tr>`;
+  }).join("");
+
+  const bodyHTML = `
+    <h1>Замовлення москітних сіток плісе</h1>
+    <div class="date">${date}</div>
+    <table>
+      <thead><tr>
+        <th style="width:30px" class="c">№</th>
+        <th>Найменування</th>
+        <th style="width:70px">Розмір</th>
+        <th style="width:80px">Колір</th>
+        <th style="width:40px" class="c">К-сть</th>
+        <th style="width:70px" class="r">Ціна, ₴</th>
+        <th style="width:70px" class="r">Сума, ₴</th>
+      </tr></thead>
+      <tbody>${rows}
+        <tr class="total-row">
+          <td></td><td colspan="3">РАЗОМ</td>
+          <td class="c">${totalQty}</td><td></td>
+          <td class="r">${totalSum.toFixed(2)}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="gen">plisse.com.ua</div>`;
+
+  const fn = "zamovlennya-plise-" + date.replace(/\./g, "-") + ".pdf";
+  openPdfPage("Замовлення " + date, bodyHTML, fn);
+  toast("Генерується PDF...");
 }
 
 // ========== PDF: CUTLIST ==========
@@ -881,44 +929,33 @@ function printCutlist() {
 
   let blocks = cart.map((item, i) => {
     const cutRows = item.cuts.map(c =>
-      `<tr><td>${c.name}</td><td style="text-align:right;font-weight:600">${c.size !== null ? Math.round(c.size) + ' ' + (c.unit||'мм') : '—'}</td><td style="text-align:center">${c.qty}</td></tr>`
+      `<tr>
+        <td>${c.name}</td>
+        <td class="r b">${c.size !== null ? Math.round(c.size) + ' ' + (c.unit||'мм') : '—'}</td>
+        <td class="c">× ${c.qty}</td>
+      </tr>`
     ).join("");
-    return `
-      <div class="block">
-        <div class="block-title">
-          <span class="num">${i + 1}</span>
-          <strong>${SHORT_NAMES[item.type]}</strong> — ${item.W}×${item.H} мм — ${COLOR_NAMES[item.color]} — <strong>${item.qty} шт</strong>
-        </div>
-        <table>
-          <thead><tr><th>Деталь</th><th style="width:100px;text-align:right">Розмір</th><th style="width:50px;text-align:center">К-сть</th></tr></thead>
-          <tbody>${cutRows}</tbody>
-        </table>
-      </div>`;
+    return `<div class="block">
+      <div class="block-hdr">
+        <span class="num">${i+1}</span>
+        <strong>${SHORT_NAMES[item.type]}</strong> &nbsp;|&nbsp; ${item.W}×${item.H} мм &nbsp;|&nbsp; ${COLOR_NAMES[item.color]} &nbsp;|&nbsp; <strong>${item.qty} шт</strong>
+      </div>
+      <table>
+        <thead><tr><th>Деталь</th><th style="width:100px" class="r">Розмір</th><th style="width:50px" class="c">К-сть</th></tr></thead>
+        <tbody>${cutRows}</tbody>
+      </table>
+    </div>`;
   }).join("");
 
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-    <title>Розкрій ${date}</title>
-    <style>
-      body{font-family:'Segoe UI',sans-serif;padding:32px;color:#1a1a1a;font-size:14px}
-      h1{font-size:20px;margin-bottom:4px}
-      .date{color:#666;margin-bottom:24px}
-      .block{margin-bottom:28px;page-break-inside:avoid}
-      .block-title{padding:10px 12px;background:#f0f0f0;border-radius:6px;margin-bottom:8px;font-size:14px}
-      .block-title .num{display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;background:#333;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:8px}
-      table{width:100%;border-collapse:collapse}
-      th{text-align:left;padding:6px 10px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #ccc;background:#fafafa}
-      td{padding:7px 10px;border-bottom:1px solid #e8e8e8}
-      @media print{body{padding:16px} .block{break-inside:avoid}}
-    </style></head><body>
+  const bodyHTML = `
     <h1>Розкрій в цех</h1>
     <div class="date">${date}</div>
     ${blocks}
-    <script>window.onload=()=>window.print();<\/script>
-  </body></html>`;
+    <div class="gen">plisse.com.ua</div>`;
 
-  const w = window.open("", "_blank");
-  w.document.write(html);
-  w.document.close();
+  const fn = "rozkriy-tsekh-" + date.replace(/\./g, "-") + ".pdf";
+  openPdfPage("Розкрій " + date, bodyHTML, fn);
+  toast("Генерується PDF...");
 }
 
 init();
